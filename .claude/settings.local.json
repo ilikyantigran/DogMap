@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/a1234/MyProjectsCrossPlatform/**)",
+      "Read(//Users/a1234/.claude/**)",
+      "Bash(git init *)",
+      "Bash(git config *)",
+      "Bash(echo \"user.name=$\\(git config user.name\\)\")",
+      "Bash(echo \"user.email=$\\(git config user.email\\)\")",
+      "Bash(git add *)",
+      "Bash(git commit -q -m 'Initial commit: design docs, agent definitions, gitignore *)"
+    ]
+  }
+}
