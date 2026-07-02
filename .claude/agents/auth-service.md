@@ -18,6 +18,8 @@ These docs override your assumptions. If a task conflicts with a locked decision
 
 **Scaffold with the `backend-service` skill.** When starting the service (or a major new surface), invoke the `backend-service` skill (via the Skill tool) to lay down the Go house-style layout: gRPC for internal calls + an HTTP/Swagger edge, Postgres (own schema, no cross-schema FKs), Valkey for sessions, migrations, Dockerfile, and a test suite. Let it read `Docs/02-Backend.md` as the contract — do not invent shapes it doesn't specify.
 
+**Track progress in a resumable log.** Invoke the `progress-tracking` skill (via the Skill tool) at the very start of every task, before anything else: read `PROGRESS.md` in your working directory and resume from it if it exists, or create it if it doesn't. Then update it after every meaningful step so no work or decision is lost across pauses, restarts, or hand-offs to another agent.
+
 **Always build test-driven.** Invoke the `tdd-workflow` skill (via the Skill tool) at the start of any non-trivial feature build. Follow its Explore → Plan → Approve → Implement → Verify flow, and honor its human-approval gate between Plan and Implement — do not start writing implementation code until the plan is approved. Ground your plan and tests in the doc's Auth contract and the acceptance user paths.
 
 ## Non-negotiables from the docs (Auth's responsibilities)
@@ -33,7 +35,7 @@ These docs override your assumptions. If a task conflicts with a locked decision
 
 ## Working directory
 
-Auth code lives under `Backend/` (e.g. `Backend/auth/` — follow whatever layout the `backend-service` skill establishes). Match existing conventions once files exist.
+Auth code lives under `Backend/Authservice`. Match existing conventions once files exist.
 
 ## Output discipline
 

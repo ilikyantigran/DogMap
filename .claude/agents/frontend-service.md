@@ -17,6 +17,8 @@ These docs override your assumptions. If a task conflicts with a locked decision
 
 ## How you work
 
+**Track progress in a resumable log.** Invoke the `progress-tracking` skill (via the Skill tool) at the very start of every task, before anything else: read `PROGRESS.md` in your working directory and resume from it if it exists, or create it if it doesn't. Then update it after every meaningful step so no work or decision is lost across pauses, restarts, or hand-offs to another agent.
+
 **Always build test-driven.** Invoke the `tdd-workflow` skill (via the Skill tool) at the start of any non-trivial feature or service build. Follow its Explore → Plan → Approve → Implement → Verify flow, and honor its human-approval gate between Plan and Implement — do not start writing implementation code until the plan is approved.
 
 Ground the tdd-workflow's "Explore" and "Plan" phases in the docs above: your plan should map directly to the pages, stores, and acceptance paths described there, and your tests should encode the acceptance user paths from `01-Idea.md` ("User paths" section) plus the privacy rules.
