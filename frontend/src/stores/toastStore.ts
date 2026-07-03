@@ -40,6 +40,9 @@ export const useToastStore = defineStore('toast', {
     success(message: string) {
       return this.push(message, 'success')
     },
+    info(message: string) {
+      return this.push(message, 'info')
+    },
     dismiss(id: number) {
       this.toasts = this.toasts.filter((t) => t.id !== id)
     },
