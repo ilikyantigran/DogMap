@@ -32,6 +32,9 @@ Terse running log. Update after every meaningful step.
 - Dockerfile (multi-stage → distroless, CONFIG_PATH=values_docker) + Makefile
   (vendor-proto + generate).
 - Verify: `go build ./...` clean, `go vet ./...` clean, `go test ./...` green.
+  Binary boots: config loads, telemetry up (`service:auth`), Profiles client
+  dials lazily; fails only at Postgres ping (no local PG) — wiring proven.
+- Committed to worktree (milestone): "Scaffold Auth microservice ...".
 
 ## Next
 - (optional, out of current scope) integration test through the HTTP edge
