@@ -1,0 +1,21 @@
+# Config for running in Docker/compose (service-name addresses).
+# Same keys as values_local.yaml; only the values differ.
+auth_service:
+  host: localhost          # in-container gateway dials its own gRPC server
+  grpc_port: "8080"
+  http_port: "8081"
+
+postgres:
+  dsn: postgres://postgres:postgres@postgres:5432/dogmap?sslmode=disable
+
+valkey:
+  address: valkey:6379
+
+downstreams:
+  profiles: profiles:8090   # Profiles gRPC (CreateProfile handoff)
+
+auth:
+  session_ttl_seconds: 86400
+  argon2_memory_kib: 65536
+  argon2_iterations: 3
+  argon2_parallelism: 2

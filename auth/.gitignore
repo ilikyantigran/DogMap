@@ -1,0 +1,2 @@
+# Vendored third-party protos are fetched via `make vendor-proto` (codegen input, not source).
+vendor-proto/

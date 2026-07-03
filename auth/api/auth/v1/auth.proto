@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package auth.v1;
+
+import "validate/validate.proto";
+import "google/api/annotations.proto";
+
+option go_package = "auth-service/pkg/api/auth/v1;authv1";
+
+// Auth owns registration, authentication, and session lifecycle for DogMap.
+// Edge shapes (JSON via grpc-gateway) map 1:1 to these messages; internally
+// services call this over gRPC. Contract: Docs/02-Backend.md "Service: Auth".
+service Auth {
+  // Register a new user: unique login + email, Argon2id-hashed password. On
+  // success Auth seeds an empty profile in Profiles via CreateProfile.
+  rpc Register(RegisterRequest) returns (RegisterResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/register"
+      body: "*"
+    };
+  }
+
+  // Login with (login OR email) AND password. On success returns an opaque
+  // session token (stored in Valkey). On failure: code+message, no token, and
+  // no hint about which field was wrong.
+  rpc Login(LoginRequest) returns (LoginResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/login"
+      body: "*"
+    };
+  }
+
+  // Logout revokes the caller's session. The token is read from the auth_token
+  // header (derived identity), never from the body. Deleting the Valkey key
+  // makes the token instantly unusable.
+  rpc Logout(LogoutRequest) returns (LogoutResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/logout"
+      body: "*"
+    };
+  }
+}
+
+message RegisterRequest {
+  string login = 1 [(validate.rules).string = {min_len: 3, max_len: 64}];
+  string email = 2 [(validate.rules).string.email = true];
+  string password = 3 [(validate.rules).string = {min_len: 8, max_len: 256}];
+}
+
+message RegisterResponse {
+  int32 code = 1;
+  string message = 2;
+  string user_id = 3; // string UUID
+}
+
+message LoginRequest {
+  // Need (login OR email) AND password. Both id fields are optional; at least
+  // one must be present. Enforced in the handler, not by validate rules.
+  string login = 1;
+  string email = 2;
+  string password = 3 [(validate.rules).string.min_len = 1];
+}
+
+message LoginResponse {
+  int32 code = 1;
+  string message = 2;
+  string token = 3;   // opaque session token
+  string user_id = 4; // string UUID
+}
+
+// Logout takes no body ids; the acting user is derived from the auth_token
+// header. Body kept empty on purpose.
+message LogoutRequest {}
+
+message LogoutResponse {
+  int32 code = 1;
+  string message = 2;
+}
