@@ -43,8 +43,11 @@ unfinished item in **Next**.
 
 ## Notes
 
-- Node is NOT installed on this machine, so `npm install` / `npm test` could not be
-  run here. Tests are authored to run under Vitest once deps are installed.
+- Node is NOT installed on this machine, so `npm install` / `npm test` / `npm run
+  build` could NOT be run here. Everything is authored to run under Vitest/vue-tsc
+  once deps are installed; treat first-run typecheck as the outstanding verify step.
+- Store pollers (map + friends) are keyed by store instance via a WeakMap so a
+  fresh Pinia per test / HMR never reuses a stale poller closure.
 - Token storage is in-memory (Pinia) per docs; localStorage trade-off documented as
   a TODO in `src/stores/authStore.ts`.
 - Backend REST paths assumed as `/<service>/<Method>` (e.g. `/auth/login`,
