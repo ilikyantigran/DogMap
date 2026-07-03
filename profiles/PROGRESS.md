@@ -17,11 +17,16 @@ Terse running log. Update after every meaningful step.
 - `go build ./...` passes.
 - Unit tests (`profiles_server_test.go`) with fake store/cache: identity, PII scoping, friend rules, block cascade, idempotent CreateProfile.
 
+- Unit tests green (19 server + 2 config).
+- Postgres integration test (skip-if-no-`PROFILES_TEST_DSN`): applies migration, exercises idempotent create, pet replacement, two-directional friend graph, block cascade, pending-request cancellation.
+- End-to-end transport test: real gRPC + grpc-gateway; POST /v1/profiles/get proves reduced-for-non-friend, unauthorized-without-token, full-PII-for-friend through the HTTP edge.
+- `go vet ./...` clean; binary builds; boot from values_local loads config + telemetry, fails cleanly at Postgres connect (correct wiring order).
+- Verified swagger exposes exactly the 8 edge RPCs; CreateProfile absent from swagger + gateway (internal gRPC only).
+- Committed scaffold milestone (`f75ecc0`).
+
 ## Next
-- Run unit tests, get green.
-- Add Postgres integration test (testcontainers or skip-if-no-DB) exercising migration + real store queries.
-- Verify: `go vet`, boot from values_local (needs deps), swagger renders.
-- Commit at milestone.
+- (Needs live deps — not available in this sandbox) run Postgres integration tests + full `go run` boot with Valkey/Postgres up; `docker build`.
+- Auth agent: generate the Profiles client stub and call `CreateProfile` idempotently on register.
 
 ## Notes
 - Ports: gRPC 8082, HTTP 8083.
