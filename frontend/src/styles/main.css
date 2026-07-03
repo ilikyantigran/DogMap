@@ -1,0 +1,164 @@
+:root {
+  --dm-bg: #f7f8fa;
+  --dm-surface: #ffffff;
+  --dm-border: #e2e5ea;
+  --dm-text: #1c2430;
+  --dm-muted: #6b7684;
+  --dm-primary: #2f7d4f;
+  --dm-primary-contrast: #ffffff;
+  --dm-danger: #c0392b;
+  --dm-radius: 8px;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--dm-bg);
+  color: var(--dm-text);
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border-radius: var(--dm-radius);
+  border: 1px solid var(--dm-border);
+  background: var(--dm-surface);
+  padding: 0.5rem 0.9rem;
+}
+
+button.primary {
+  background: var(--dm-primary);
+  color: var(--dm-primary-contrast);
+  border-color: var(--dm-primary);
+}
+
+button.danger {
+  color: var(--dm-danger);
+  border-color: var(--dm-danger);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+input,
+select {
+  font: inherit;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--dm-border);
+  border-radius: var(--dm-radius);
+  background: var(--dm-surface);
+  width: 100%;
+}
+
+label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--dm-muted);
+  margin-bottom: 0.25rem;
+}
+
+.field {
+  margin-bottom: 0.9rem;
+}
+
+.field .error {
+  color: var(--dm-danger);
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+.card {
+  background: var(--dm-surface);
+  border: 1px solid var(--dm-border);
+  border-radius: var(--dm-radius);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* App shell */
+.app-nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--dm-surface);
+  border-bottom: 1px solid var(--dm-border);
+}
+
+.app-nav a {
+  text-decoration: none;
+  color: var(--dm-muted);
+  font-weight: 600;
+}
+
+.app-nav a.router-link-active {
+  color: var(--dm-primary);
+}
+
+.app-nav .spacer {
+  flex: 1;
+}
+
+.app-main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* Toasts */
+.toast-host {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 1000;
+}
+
+.toast {
+  padding: 0.6rem 0.9rem;
+  border-radius: var(--dm-radius);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  max-width: 320px;
+}
+
+.toast.error {
+  background: var(--dm-danger);
+}
+.toast.success {
+  background: var(--dm-primary);
+}
+.toast.info {
+  background: #34495e;
+}
+
+/* Map */
+.map-canvas {
+  height: 60vh;
+  min-height: 320px;
+  border-radius: var(--dm-radius);
+  overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .app-main {
+    padding: 0.5rem;
+  }
+  .map-canvas {
+    height: 55vh;
+  }
+}
