@@ -1,6 +1,7 @@
 package app
 
 import (
+	"google.golang.org/protobuf/encoding/protojson"
 	"context"
 	"errors"
 	"fmt"
@@ -141,7 +142,11 @@ func (a *App) Run(ctx context.Context) error {
 // httpHandler builds the REST gateway (dialing this service's own gRPC server)
 // plus the /metrics and /swagger/ endpoints.
 func (a *App) httpHandler(ctx context.Context, tel *telemetry.Provider) (http.Handler, error) {
-	gwMux := runtime.NewServeMux(runtime.WithMetadata(forwardAuthToken))
+	gwMux := runtime.NewServeMux(
+		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
+			MarshalOptions:   protojson.MarshalOptions{UseProtoNames: true, EmitUnpopulated: true},
+			UnmarshalOptions: protojson.UnmarshalOptions{DiscardUnknown: true},
+		}),runtime.WithMetadata(forwardAuthToken))
 	dialAddr := fmt.Sprintf("%s:%s", a.config.Service.Host, a.config.Service.GrpcPort)
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),

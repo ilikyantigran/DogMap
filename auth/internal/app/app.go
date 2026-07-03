@@ -1,6 +1,7 @@
 package app
 
 import (
+	"google.golang.org/protobuf/encoding/protojson"
 	"context"
 	"errors"
 	"fmt"
@@ -139,6 +140,10 @@ func (a *App) Run(ctx context.Context) error {
 // the acting identity reaches Logout without ever appearing in the body.
 func (a *App) httpHandler(ctx context.Context, tel *telemetry.Provider) (http.Handler, error) {
 	gwMux := runtime.NewServeMux(
+		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
+			MarshalOptions:   protojson.MarshalOptions{UseProtoNames: true, EmitUnpopulated: true},
+			UnmarshalOptions: protojson.UnmarshalOptions{DiscardUnknown: true},
+		}),
 		runtime.WithMetadata(func(_ context.Context, r *http.Request) metadata.MD {
 			if tok := r.Header.Get(authTokenHeader); tok != "" {
 				return metadata.Pairs(authTokenHeader, tok)

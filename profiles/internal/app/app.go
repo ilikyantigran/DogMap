@@ -1,6 +1,7 @@
 package app
 
 import (
+	"google.golang.org/protobuf/encoding/protojson"
 	"context"
 	"errors"
 	"fmt"
@@ -120,6 +121,10 @@ func (a *App) Run(ctx context.Context) error {
 // gRPC metadata so the server can resolve the acting user.
 func (a *App) httpHandler(ctx context.Context, tel *telemetry.Provider) (http.Handler, error) {
 	gwMux := runtime.NewServeMux(
+		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
+			MarshalOptions:   protojson.MarshalOptions{UseProtoNames: true, EmitUnpopulated: true},
+			UnmarshalOptions: protojson.UnmarshalOptions{DiscardUnknown: true},
+		}),
 		runtime.WithIncomingHeaderMatcher(func(key string) (string, bool) {
 			if key == "Auth_token" || key == "Auth-Token" || key == "auth_token" {
 				return "auth_token", true
