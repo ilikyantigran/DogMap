@@ -25,6 +25,21 @@ service ProfilesService {
     };
   }
 
+  // FindUserByLogin looks up a user by login (case-insensitive; login is citext)
+  // for stranger discovery — the frontend's "find a friend by login" search. It
+  // ALWAYS returns the reduced (no-PII) shape, even when the looked-up user is
+  // already a friend: a discovery endpoint must not be a PII surface, and full
+  // details for real friends are available via GetUserInfo. friend_status is
+  // still computed so the frontend can render the right button. If no user has
+  // that login, the response carries a not-found envelope (code/message), not an
+  // error.
+  rpc FindUserByLogin(FindUserByLoginRequest) returns (GetUserInfoResponse) {
+    option (google.api.http) = {
+      post: "/v1/profiles/find-by-login"
+      body: "*"
+    };
+  }
+
   // EditUser updates the *acting user's own* profile (name/surname/phone/pets).
   // No user_id in the body; login/email are not editable here.
   rpc EditUser(EditUserRequest) returns (GetUserInfoResponse) {
@@ -100,6 +115,12 @@ message Pet {
 
 message GetUserInfoRequest {
   string user_id_target = 1 [(validate.rules).string.uuid = true];
+}
+
+// FindUserByLoginRequest carries the login to search for. Acting user comes from
+// the token, never the body. Lookup is case-insensitive (login is citext).
+message FindUserByLoginRequest {
+  string login = 1 [(validate.rules).string.min_len = 1];
 }
 
 // GetUserInfoResponse carries the full shape for self/friends and the reduced

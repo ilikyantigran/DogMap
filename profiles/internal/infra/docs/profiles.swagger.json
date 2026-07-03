@@ -244,6 +244,40 @@
         ]
       }
     },
+    "/v1/profiles/find-by-login": {
+      "post": {
+        "summary": "FindUserByLogin looks up a user by login (case-insensitive; login is citext)\nfor stranger discovery — the frontend's \"find a friend by login\" search. It\nALWAYS returns the reduced (no-PII) shape, even when the looked-up user is\nalready a friend: a discovery endpoint must not be a PII surface, and full\ndetails for real friends are available via GetUserInfo. friend_status is\nstill computed so the frontend can render the right button. If no user has\nthat login, the response carries a not-found envelope (code/message), not an\nerror.",
+        "operationId": "ProfilesService_FindUserByLogin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetUserInfoResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "FindUserByLoginRequest carries the login to search for. Acting user comes from\nthe token, never the body. Lookup is case-insensitive (login is citext).",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1FindUserByLoginRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ProfilesService"
+        ]
+      }
+    },
     "/v1/profiles/get": {
       "post": {
         "summary": "GetUserInfo returns the target's profile. Full shape (incl. email/phone) to\nself or friends; reduced shape (no PII) to non-friends.",
@@ -328,6 +362,15 @@
           }
         }
       }
+    },
+    "v1FindUserByLoginRequest": {
+      "type": "object",
+      "properties": {
+        "login": {
+          "type": "string"
+        }
+      },
+      "description": "FindUserByLoginRequest carries the login to search for. Acting user comes from\nthe token, never the body. Lookup is case-insensitive (login is citext)."
     },
     "v1Friend": {
       "type": "object",

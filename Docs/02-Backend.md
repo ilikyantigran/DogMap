@@ -134,6 +134,22 @@ Response — **full** (self or friend):
 ```
 Response — **reduced** (non-friend): omit `email`, `phone`; may omit `current_object_id`.
 
+### FindUserByLogin
+`POST /v1/profiles/find-by-login`. Request: header `auth_token`; acting user from
+the token, **never the body**.
+```json
+{ "login": "string" }
+```
+- Find-a-friend-by-login discovery lookup (frontend "add friend by login" search).
+- Lookup is **case-insensitive** (`login` is `citext`).
+- Returns the same shape as `GetUserInfo` but **always reduced** (no `email`/`phone`,
+  no `current_object_id`, `has_pii=false`) — even when the looked-up user is already
+  a friend. A discovery endpoint must never be a PII surface; full details for real
+  friends stay behind `GetUserInfo`. `friend_status` **is** still computed for the
+  caller so the frontend can render the right action (send request / pending / friends).
+- No user with that login → **not-found envelope** `{ "code": 404, "message": "user not found" }`
+  (not a transport error).
+
 ### EditUser
 Request: header `auth_token`. Acting user = token owner; **no user_id in body**.
 ```json

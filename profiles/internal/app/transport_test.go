@@ -101,4 +101,47 @@ func TestTransport_EndToEndPrivacy(t *testing.T) {
 	if out["email"] != "b@x.io" || out["phone"] != "+200" {
 		t.Fatalf("friend must get PII over edge: %v", out)
 	}
+
+	// --- find-by-login over the real edge -----------------------------------
+	findByLogin := func(token, login string) map[string]any {
+		body, _ := json.Marshal(map[string]string{"login": login})
+		req, _ := http.NewRequest(http.MethodPost, ts.URL+"/v1/profiles/find-by-login", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		if token != "" {
+			req.Header.Set("auth_token", token)
+		}
+		resp, err := (&http.Client{Timeout: 3 * time.Second}).Do(req)
+		if err != nil {
+			t.Fatalf("http: %v", err)
+		}
+		defer resp.Body.Close()
+		var o map[string]any
+		json.NewDecoder(resp.Body).Decode(&o)
+		return o
+	}
+
+	// Found: case-insensitive, reduced shape (no PII) even though u1 and u2 are
+	// now friends — discovery must never be a PII surface.
+	out = findByLogin("tok1", "test2")
+	if out["userId"] != "u2" || out["login"] != "Test2" {
+		t.Fatalf("find-by-login did not resolve case-insensitively: %v", out)
+	}
+	if fmt.Sprint(out["hasPii"]) == "true" {
+		t.Fatalf("find-by-login leaked full shape: %v", out)
+	}
+	if (out["email"] != nil && out["email"] != "") || (out["phone"] != nil && out["phone"] != "") {
+		t.Fatalf("find-by-login leaked PII over edge: %v", out)
+	}
+
+	// Not found → {code:404} envelope, not an HTTP error page.
+	out = findByLogin("tok1", "ghost")
+	if fmt.Sprint(out["code"]) != "404" {
+		t.Fatalf("unknown login must return 404 envelope, got %v", out)
+	}
+
+	// No token → unauthorized.
+	out = findByLogin("", "Test2")
+	if fmt.Sprint(out["code"]) != "401" {
+		t.Fatalf("find-by-login without token must be unauthorized, got %v", out)
+	}
 }

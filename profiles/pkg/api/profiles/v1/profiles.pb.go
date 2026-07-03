@@ -199,6 +199,52 @@ func (x *GetUserInfoRequest) GetUserIdTarget() string {
 	return ""
 }
 
+// FindUserByLoginRequest carries the login to search for. Acting user comes from
+// the token, never the body. Lookup is case-insensitive (login is citext).
+type FindUserByLoginRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Login         string                 `protobuf:"bytes,1,opt,name=login,proto3" json:"login,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FindUserByLoginRequest) Reset() {
+	*x = FindUserByLoginRequest{}
+	mi := &file_profiles_v1_profiles_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FindUserByLoginRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FindUserByLoginRequest) ProtoMessage() {}
+
+func (x *FindUserByLoginRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_profiles_v1_profiles_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FindUserByLoginRequest.ProtoReflect.Descriptor instead.
+func (*FindUserByLoginRequest) Descriptor() ([]byte, []int) {
+	return file_profiles_v1_profiles_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *FindUserByLoginRequest) GetLogin() string {
+	if x != nil {
+		return x.Login
+	}
+	return ""
+}
+
 // GetUserInfoResponse carries the full shape for self/friends and the reduced
 // shape for non-friends. In the reduced shape `email` and `phone` are empty and
 // `current_object_id` is omitted; `has_pii` marks which shape this is.
@@ -223,7 +269,7 @@ type GetUserInfoResponse struct {
 
 func (x *GetUserInfoResponse) Reset() {
 	*x = GetUserInfoResponse{}
-	mi := &file_profiles_v1_profiles_proto_msgTypes[2]
+	mi := &file_profiles_v1_profiles_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -235,7 +281,7 @@ func (x *GetUserInfoResponse) String() string {
 func (*GetUserInfoResponse) ProtoMessage() {}
 
 func (x *GetUserInfoResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_profiles_v1_profiles_proto_msgTypes[2]
+	mi := &file_profiles_v1_profiles_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -248,7 +294,7 @@ func (x *GetUserInfoResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserInfoResponse.ProtoReflect.Descriptor instead.
 func (*GetUserInfoResponse) Descriptor() ([]byte, []int) {
-	return file_profiles_v1_profiles_proto_rawDescGZIP(), []int{2}
+	return file_profiles_v1_profiles_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *GetUserInfoResponse) GetCode() int32 {
@@ -355,7 +401,7 @@ type EditUserRequest struct {
 
 func (x *EditUserRequest) Reset() {
 	*x = EditUserRequest{}
-	mi := &file_profiles_v1_profiles_proto_msgTypes[3]
+	mi := &file_profiles_v1_profiles_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -367,7 +413,7 @@ func (x *EditUserRequest) String() string {
 func (*EditUserRequest) ProtoMessage() {}
 
 func (x *EditUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_profiles_v1_profiles_proto_msgTypes[3]
+	mi := &file_profiles_v1_profiles_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -380,7 +426,7 @@ func (x *EditUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EditUserRequest.ProtoReflect.Descriptor instead.
 func (*EditUserRequest) Descriptor() ([]byte, []int) {
-	return file_profiles_v1_profiles_proto_rawDescGZIP(), []int{3}
+	return file_profiles_v1_profiles_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *EditUserRequest) GetName() string {
@@ -420,7 +466,7 @@ type SendFriendRequestRequest struct {
 
 func (x *SendFriendRequestRequest) Reset() {
 	*x = SendFriendRequestRequest{}
-	mi := &file_profiles_v1_profiles_proto_msgTypes[4]
+	mi := &file_profiles_v1_profiles_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -432,7 +478,7 @@ func (x *SendFriendRequestRequest) String() string {
 func (*SendFriendRequestRequest) ProtoMessage() {}
 
 func (x *SendFriendRequestRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_profiles_v1_profiles_proto_msgTypes[4]
+	mi := &file_profiles_v1_profiles_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -445,7 +491,7 @@ func (x *SendFriendRequestRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendFriendRequestRequest.ProtoReflect.Descriptor instead.
 func (*SendFriendRequestRequest) Descriptor() ([]byte, []int) {
-	return file_profiles_v1_profiles_proto_rawDescGZIP(), []int{4}
+	return file_profiles_v1_profiles_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *SendFriendRequestRequest) GetUserIdTarget() string {
@@ -466,7 +512,7 @@ type SendFriendRequestResponse struct {
 
 func (x *SendFriendRequestResponse) Reset() {
 	*x = SendFriendRequestResponse{}
-	mi := &file_profiles_v1_profiles_proto_msgTypes[5]
+	mi := &file_profiles_v1_profiles_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -478,7 +524,7 @@ func (x *SendFriendRequestResponse) String() string {
 func (*SendFriendRequestResponse) ProtoMessage() {}
 
 func (x *SendFriendRequestResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_profiles_v1_profiles_proto_msgTypes[5]
+	mi := &file_profiles_v1_profiles_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -491,7 +537,7 @@ func (x *SendFriendRequestResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendFriendRequestResponse.ProtoReflect.Descriptor instead.
 func (*SendFriendRequestResponse) Descriptor() ([]byte, []int) {
-	return file_profiles_v1_profiles_proto_rawDescGZIP(), []int{5}
+	return file_profiles_v1_profiles_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *SendFriendRequestResponse) GetCode() int32 {
@@ -525,7 +571,7 @@ type SendFriendResponseRequest struct {
 
 func (x *SendFriendResponseRequest) Reset() {
 	*x = SendFriendResponseRequest{}
-	mi := &file_profiles_v1_profiles_proto_msgTypes[6]
+	mi := &file_profiles_v1_profiles_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -537,7 +583,7 @@ func (x *SendFriendResponseRequest) String() string {
 func (*SendFriendResponseRequest) ProtoMessage() {}
 
 func (x *SendFriendResponseRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_profiles_v1_profiles_proto_msgTypes[6]
+	mi := &file_profiles_v1_profiles_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -550,7 +596,7 @@ func (x *SendFriendResponseRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendFriendResponseRequest.ProtoReflect.Descriptor instead.
 func (*SendFriendResponseRequest) Descriptor() ([]byte, []int) {
-	return file_profiles_v1_profiles_proto_rawDescGZIP(), []int{6}
+	return file_profiles_v1_profiles_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *SendFriendResponseRequest) GetFriendRequestId() string {
@@ -575,7 +621,7 @@ type ListFriendsRequest struct {
 
 func (x *ListFriendsRequest) Reset() {
 	*x = ListFriendsRequest{}
-	mi := &file_profiles_v1_profiles_proto_msgTypes[7]
+	mi := &file_profiles_v1_profiles_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -587,7 +633,7 @@ func (x *ListFriendsRequest) String() string {
 func (*ListFriendsRequest) ProtoMessage() {}
 
 func (x *ListFriendsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_profiles_v1_profiles_proto_msgTypes[7]
+	mi := &file_profiles_v1_profiles_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -600,7 +646,7 @@ func (x *ListFriendsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListFriendsRequest.ProtoReflect.Descriptor instead.
 func (*ListFriendsRequest) Descriptor() ([]byte, []int) {
-	return file_profiles_v1_profiles_proto_rawDescGZIP(), []int{7}
+	return file_profiles_v1_profiles_proto_rawDescGZIP(), []int{8}
 }
 
 type Friend struct {
@@ -615,7 +661,7 @@ type Friend struct {
 
 func (x *Friend) Reset() {
 	*x = Friend{}
-	mi := &file_profiles_v1_profiles_proto_msgTypes[8]
+	mi := &file_profiles_v1_profiles_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -627,7 +673,7 @@ func (x *Friend) String() string {
 func (*Friend) ProtoMessage() {}
 
 func (x *Friend) ProtoReflect() protoreflect.Message {
-	mi := &file_profiles_v1_profiles_proto_msgTypes[8]
+	mi := &file_profiles_v1_profiles_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -640,7 +686,7 @@ func (x *Friend) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Friend.ProtoReflect.Descriptor instead.
 func (*Friend) Descriptor() ([]byte, []int) {
-	return file_profiles_v1_profiles_proto_rawDescGZIP(), []int{8}
+	return file_profiles_v1_profiles_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *Friend) GetUserId() string {
@@ -682,7 +728,7 @@ type IncomingRequest struct {
 
 func (x *IncomingRequest) Reset() {
 	*x = IncomingRequest{}
-	mi := &file_profiles_v1_profiles_proto_msgTypes[9]
+	mi := &file_profiles_v1_profiles_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -694,7 +740,7 @@ func (x *IncomingRequest) String() string {
 func (*IncomingRequest) ProtoMessage() {}
 
 func (x *IncomingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_profiles_v1_profiles_proto_msgTypes[9]
+	mi := &file_profiles_v1_profiles_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -707,7 +753,7 @@ func (x *IncomingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IncomingRequest.ProtoReflect.Descriptor instead.
 func (*IncomingRequest) Descriptor() ([]byte, []int) {
-	return file_profiles_v1_profiles_proto_rawDescGZIP(), []int{9}
+	return file_profiles_v1_profiles_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *IncomingRequest) GetFromUserId() string {
@@ -741,7 +787,7 @@ type OutgoingRequest struct {
 
 func (x *OutgoingRequest) Reset() {
 	*x = OutgoingRequest{}
-	mi := &file_profiles_v1_profiles_proto_msgTypes[10]
+	mi := &file_profiles_v1_profiles_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -753,7 +799,7 @@ func (x *OutgoingRequest) String() string {
 func (*OutgoingRequest) ProtoMessage() {}
 
 func (x *OutgoingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_profiles_v1_profiles_proto_msgTypes[10]
+	mi := &file_profiles_v1_profiles_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -766,7 +812,7 @@ func (x *OutgoingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OutgoingRequest.ProtoReflect.Descriptor instead.
 func (*OutgoingRequest) Descriptor() ([]byte, []int) {
-	return file_profiles_v1_profiles_proto_rawDescGZIP(), []int{10}
+	return file_profiles_v1_profiles_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *OutgoingRequest) GetToUserId() string {
@@ -796,7 +842,7 @@ type ListFriendsResponse struct {
 
 func (x *ListFriendsResponse) Reset() {
 	*x = ListFriendsResponse{}
-	mi := &file_profiles_v1_profiles_proto_msgTypes[11]
+	mi := &file_profiles_v1_profiles_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -808,7 +854,7 @@ func (x *ListFriendsResponse) String() string {
 func (*ListFriendsResponse) ProtoMessage() {}
 
 func (x *ListFriendsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_profiles_v1_profiles_proto_msgTypes[11]
+	mi := &file_profiles_v1_profiles_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -821,7 +867,7 @@ func (x *ListFriendsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListFriendsResponse.ProtoReflect.Descriptor instead.
 func (*ListFriendsResponse) Descriptor() ([]byte, []int) {
-	return file_profiles_v1_profiles_proto_rawDescGZIP(), []int{11}
+	return file_profiles_v1_profiles_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ListFriendsResponse) GetCode() int32 {
@@ -869,7 +915,7 @@ type TargetRequest struct {
 
 func (x *TargetRequest) Reset() {
 	*x = TargetRequest{}
-	mi := &file_profiles_v1_profiles_proto_msgTypes[12]
+	mi := &file_profiles_v1_profiles_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -881,7 +927,7 @@ func (x *TargetRequest) String() string {
 func (*TargetRequest) ProtoMessage() {}
 
 func (x *TargetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_profiles_v1_profiles_proto_msgTypes[12]
+	mi := &file_profiles_v1_profiles_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -894,7 +940,7 @@ func (x *TargetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TargetRequest.ProtoReflect.Descriptor instead.
 func (*TargetRequest) Descriptor() ([]byte, []int) {
-	return file_profiles_v1_profiles_proto_rawDescGZIP(), []int{12}
+	return file_profiles_v1_profiles_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *TargetRequest) GetUserIdTarget() string {
@@ -915,7 +961,7 @@ type CreateProfileRequest struct {
 
 func (x *CreateProfileRequest) Reset() {
 	*x = CreateProfileRequest{}
-	mi := &file_profiles_v1_profiles_proto_msgTypes[13]
+	mi := &file_profiles_v1_profiles_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -927,7 +973,7 @@ func (x *CreateProfileRequest) String() string {
 func (*CreateProfileRequest) ProtoMessage() {}
 
 func (x *CreateProfileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_profiles_v1_profiles_proto_msgTypes[13]
+	mi := &file_profiles_v1_profiles_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -940,7 +986,7 @@ func (x *CreateProfileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateProfileRequest.ProtoReflect.Descriptor instead.
 func (*CreateProfileRequest) Descriptor() ([]byte, []int) {
-	return file_profiles_v1_profiles_proto_rawDescGZIP(), []int{13}
+	return file_profiles_v1_profiles_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *CreateProfileRequest) GetUserId() string {
@@ -974,7 +1020,7 @@ type StatusResponse struct {
 
 func (x *StatusResponse) Reset() {
 	*x = StatusResponse{}
-	mi := &file_profiles_v1_profiles_proto_msgTypes[14]
+	mi := &file_profiles_v1_profiles_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -986,7 +1032,7 @@ func (x *StatusResponse) String() string {
 func (*StatusResponse) ProtoMessage() {}
 
 func (x *StatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_profiles_v1_profiles_proto_msgTypes[14]
+	mi := &file_profiles_v1_profiles_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -999,7 +1045,7 @@ func (x *StatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StatusResponse.ProtoReflect.Descriptor instead.
 func (*StatusResponse) Descriptor() ([]byte, []int) {
-	return file_profiles_v1_profiles_proto_rawDescGZIP(), []int{14}
+	return file_profiles_v1_profiles_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *StatusResponse) GetCode() int32 {
@@ -1028,7 +1074,9 @@ const file_profiles_v1_profiles_proto_rawDesc = "" +
 	"\fis_castrated\x18\x04 \x01(\bR\visCastrated\x12\x1b\n" +
 	"\x03age\x18\x05 \x01(\x05B\t\xfaB\x06\x1a\x04\x18d(\x00R\x03age\"D\n" +
 	"\x12GetUserInfoRequest\x12.\n" +
-	"\x0euser_id_target\x18\x01 \x01(\tB\b\xfaB\x05r\x03\xb0\x01\x01R\fuserIdTarget\"\x90\x03\n" +
+	"\x0euser_id_target\x18\x01 \x01(\tB\b\xfaB\x05r\x03\xb0\x01\x01R\fuserIdTarget\"7\n" +
+	"\x16FindUserByLoginRequest\x12\x1d\n" +
+	"\x05login\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\x05login\"\x90\x03\n" +
 	"\x13GetUserInfoResponse\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x17\n" +
@@ -1096,9 +1144,10 @@ const file_profiles_v1_profiles_proto_rawDesc = "" +
 	"\x19FRIEND_STATUS_PENDING_OUT\x10\x01\x12\x1c\n" +
 	"\x18FRIEND_STATUS_PENDING_IN\x10\x02\x12\x19\n" +
 	"\x15FRIEND_STATUS_FRIENDS\x10\x03\x12\x19\n" +
-	"\x15FRIEND_STATUS_BLOCKED\x10\x042\xde\a\n" +
+	"\x15FRIEND_STATUS_BLOCKED\x10\x042\xdf\b\n" +
 	"\x0fProfilesService\x12m\n" +
-	"\vGetUserInfo\x12\x1f.profiles.v1.GetUserInfoRequest\x1a .profiles.v1.GetUserInfoResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/v1/profiles/get\x12h\n" +
+	"\vGetUserInfo\x12\x1f.profiles.v1.GetUserInfoRequest\x1a .profiles.v1.GetUserInfoResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/v1/profiles/get\x12\x7f\n" +
+	"\x0fFindUserByLogin\x12#.profiles.v1.FindUserByLoginRequest\x1a .profiles.v1.GetUserInfoResponse\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\"\x1a/v1/profiles/find-by-login\x12h\n" +
 	"\bEditUser\x12\x1c.profiles.v1.EditUserRequest\x1a .profiles.v1.GetUserInfoResponse\"\x1c\x82\xd3\xe4\x93\x02\x16:\x01*\"\x11/v1/profiles/edit\x12\x82\x01\n" +
 	"\x11SendFriendRequest\x12%.profiles.v1.SendFriendRequestRequest\x1a&.profiles.v1.SendFriendRequestResponse\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/v1/friends/request\x12y\n" +
 	"\x12SendFriendResponse\x12&.profiles.v1.SendFriendResponseRequest\x1a\x1b.profiles.v1.StatusResponse\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/v1/friends/respond\x12m\n" +
@@ -1121,52 +1170,55 @@ func file_profiles_v1_profiles_proto_rawDescGZIP() []byte {
 }
 
 var file_profiles_v1_profiles_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_profiles_v1_profiles_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
+var file_profiles_v1_profiles_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_profiles_v1_profiles_proto_goTypes = []any{
 	(FriendStatus)(0),                 // 0: profiles.v1.FriendStatus
 	(*Pet)(nil),                       // 1: profiles.v1.Pet
 	(*GetUserInfoRequest)(nil),        // 2: profiles.v1.GetUserInfoRequest
-	(*GetUserInfoResponse)(nil),       // 3: profiles.v1.GetUserInfoResponse
-	(*EditUserRequest)(nil),           // 4: profiles.v1.EditUserRequest
-	(*SendFriendRequestRequest)(nil),  // 5: profiles.v1.SendFriendRequestRequest
-	(*SendFriendRequestResponse)(nil), // 6: profiles.v1.SendFriendRequestResponse
-	(*SendFriendResponseRequest)(nil), // 7: profiles.v1.SendFriendResponseRequest
-	(*ListFriendsRequest)(nil),        // 8: profiles.v1.ListFriendsRequest
-	(*Friend)(nil),                    // 9: profiles.v1.Friend
-	(*IncomingRequest)(nil),           // 10: profiles.v1.IncomingRequest
-	(*OutgoingRequest)(nil),           // 11: profiles.v1.OutgoingRequest
-	(*ListFriendsResponse)(nil),       // 12: profiles.v1.ListFriendsResponse
-	(*TargetRequest)(nil),             // 13: profiles.v1.TargetRequest
-	(*CreateProfileRequest)(nil),      // 14: profiles.v1.CreateProfileRequest
-	(*StatusResponse)(nil),            // 15: profiles.v1.StatusResponse
+	(*FindUserByLoginRequest)(nil),    // 3: profiles.v1.FindUserByLoginRequest
+	(*GetUserInfoResponse)(nil),       // 4: profiles.v1.GetUserInfoResponse
+	(*EditUserRequest)(nil),           // 5: profiles.v1.EditUserRequest
+	(*SendFriendRequestRequest)(nil),  // 6: profiles.v1.SendFriendRequestRequest
+	(*SendFriendRequestResponse)(nil), // 7: profiles.v1.SendFriendRequestResponse
+	(*SendFriendResponseRequest)(nil), // 8: profiles.v1.SendFriendResponseRequest
+	(*ListFriendsRequest)(nil),        // 9: profiles.v1.ListFriendsRequest
+	(*Friend)(nil),                    // 10: profiles.v1.Friend
+	(*IncomingRequest)(nil),           // 11: profiles.v1.IncomingRequest
+	(*OutgoingRequest)(nil),           // 12: profiles.v1.OutgoingRequest
+	(*ListFriendsResponse)(nil),       // 13: profiles.v1.ListFriendsResponse
+	(*TargetRequest)(nil),             // 14: profiles.v1.TargetRequest
+	(*CreateProfileRequest)(nil),      // 15: profiles.v1.CreateProfileRequest
+	(*StatusResponse)(nil),            // 16: profiles.v1.StatusResponse
 }
 var file_profiles_v1_profiles_proto_depIdxs = []int32{
 	1,  // 0: profiles.v1.GetUserInfoResponse.pets:type_name -> profiles.v1.Pet
 	0,  // 1: profiles.v1.GetUserInfoResponse.friend_status:type_name -> profiles.v1.FriendStatus
 	1,  // 2: profiles.v1.EditUserRequest.pets:type_name -> profiles.v1.Pet
-	9,  // 3: profiles.v1.ListFriendsResponse.friends:type_name -> profiles.v1.Friend
-	10, // 4: profiles.v1.ListFriendsResponse.incoming_requests:type_name -> profiles.v1.IncomingRequest
-	11, // 5: profiles.v1.ListFriendsResponse.outgoing_requests:type_name -> profiles.v1.OutgoingRequest
+	10, // 3: profiles.v1.ListFriendsResponse.friends:type_name -> profiles.v1.Friend
+	11, // 4: profiles.v1.ListFriendsResponse.incoming_requests:type_name -> profiles.v1.IncomingRequest
+	12, // 5: profiles.v1.ListFriendsResponse.outgoing_requests:type_name -> profiles.v1.OutgoingRequest
 	2,  // 6: profiles.v1.ProfilesService.GetUserInfo:input_type -> profiles.v1.GetUserInfoRequest
-	4,  // 7: profiles.v1.ProfilesService.EditUser:input_type -> profiles.v1.EditUserRequest
-	5,  // 8: profiles.v1.ProfilesService.SendFriendRequest:input_type -> profiles.v1.SendFriendRequestRequest
-	7,  // 9: profiles.v1.ProfilesService.SendFriendResponse:input_type -> profiles.v1.SendFriendResponseRequest
-	8,  // 10: profiles.v1.ProfilesService.ListFriends:input_type -> profiles.v1.ListFriendsRequest
-	13, // 11: profiles.v1.ProfilesService.RemoveFriend:input_type -> profiles.v1.TargetRequest
-	13, // 12: profiles.v1.ProfilesService.BlockUser:input_type -> profiles.v1.TargetRequest
-	13, // 13: profiles.v1.ProfilesService.UnblockUser:input_type -> profiles.v1.TargetRequest
-	14, // 14: profiles.v1.ProfilesService.CreateProfile:input_type -> profiles.v1.CreateProfileRequest
-	3,  // 15: profiles.v1.ProfilesService.GetUserInfo:output_type -> profiles.v1.GetUserInfoResponse
-	3,  // 16: profiles.v1.ProfilesService.EditUser:output_type -> profiles.v1.GetUserInfoResponse
-	6,  // 17: profiles.v1.ProfilesService.SendFriendRequest:output_type -> profiles.v1.SendFriendRequestResponse
-	15, // 18: profiles.v1.ProfilesService.SendFriendResponse:output_type -> profiles.v1.StatusResponse
-	12, // 19: profiles.v1.ProfilesService.ListFriends:output_type -> profiles.v1.ListFriendsResponse
-	15, // 20: profiles.v1.ProfilesService.RemoveFriend:output_type -> profiles.v1.StatusResponse
-	15, // 21: profiles.v1.ProfilesService.BlockUser:output_type -> profiles.v1.StatusResponse
-	15, // 22: profiles.v1.ProfilesService.UnblockUser:output_type -> profiles.v1.StatusResponse
-	15, // 23: profiles.v1.ProfilesService.CreateProfile:output_type -> profiles.v1.StatusResponse
-	15, // [15:24] is the sub-list for method output_type
-	6,  // [6:15] is the sub-list for method input_type
+	3,  // 7: profiles.v1.ProfilesService.FindUserByLogin:input_type -> profiles.v1.FindUserByLoginRequest
+	5,  // 8: profiles.v1.ProfilesService.EditUser:input_type -> profiles.v1.EditUserRequest
+	6,  // 9: profiles.v1.ProfilesService.SendFriendRequest:input_type -> profiles.v1.SendFriendRequestRequest
+	8,  // 10: profiles.v1.ProfilesService.SendFriendResponse:input_type -> profiles.v1.SendFriendResponseRequest
+	9,  // 11: profiles.v1.ProfilesService.ListFriends:input_type -> profiles.v1.ListFriendsRequest
+	14, // 12: profiles.v1.ProfilesService.RemoveFriend:input_type -> profiles.v1.TargetRequest
+	14, // 13: profiles.v1.ProfilesService.BlockUser:input_type -> profiles.v1.TargetRequest
+	14, // 14: profiles.v1.ProfilesService.UnblockUser:input_type -> profiles.v1.TargetRequest
+	15, // 15: profiles.v1.ProfilesService.CreateProfile:input_type -> profiles.v1.CreateProfileRequest
+	4,  // 16: profiles.v1.ProfilesService.GetUserInfo:output_type -> profiles.v1.GetUserInfoResponse
+	4,  // 17: profiles.v1.ProfilesService.FindUserByLogin:output_type -> profiles.v1.GetUserInfoResponse
+	4,  // 18: profiles.v1.ProfilesService.EditUser:output_type -> profiles.v1.GetUserInfoResponse
+	7,  // 19: profiles.v1.ProfilesService.SendFriendRequest:output_type -> profiles.v1.SendFriendRequestResponse
+	16, // 20: profiles.v1.ProfilesService.SendFriendResponse:output_type -> profiles.v1.StatusResponse
+	13, // 21: profiles.v1.ProfilesService.ListFriends:output_type -> profiles.v1.ListFriendsResponse
+	16, // 22: profiles.v1.ProfilesService.RemoveFriend:output_type -> profiles.v1.StatusResponse
+	16, // 23: profiles.v1.ProfilesService.BlockUser:output_type -> profiles.v1.StatusResponse
+	16, // 24: profiles.v1.ProfilesService.UnblockUser:output_type -> profiles.v1.StatusResponse
+	16, // 25: profiles.v1.ProfilesService.CreateProfile:output_type -> profiles.v1.StatusResponse
+	16, // [16:26] is the sub-list for method output_type
+	6,  // [6:16] is the sub-list for method input_type
 	6,  // [6:6] is the sub-list for extension type_name
 	6,  // [6:6] is the sub-list for extension extendee
 	0,  // [0:6] is the sub-list for field type_name
@@ -1183,7 +1235,7 @@ func file_profiles_v1_profiles_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_profiles_v1_profiles_proto_rawDesc), len(file_profiles_v1_profiles_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   15,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

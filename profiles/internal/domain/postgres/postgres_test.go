@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -96,6 +97,34 @@ func TestIntegration_UpdateProfileReplacesPets(t *testing.T) {
 	p, _ = s.GetProfile(ctx, id)
 	if len(p.Pets) != 0 {
 		t.Fatalf("pets not replaced: %+v", p.Pets)
+	}
+}
+
+func TestIntegration_GetProfileByLoginCaseInsensitive(t *testing.T) {
+	s := testStore(t)
+	ctx := context.Background()
+	id := uuid.NewString()
+	if err := s.CreateProfile(ctx, id, "CaseUser", "case@x.io"); err != nil {
+		t.Fatal(err)
+	}
+	// login is citext → lookup with different casing must still find the row,
+	// and the pets projection must come through.
+	if err := s.UpdateProfile(ctx, id, "Case", "User", "+1",
+		[]Pet{{Breed: "Beagle", Name: "Rex", Sex: "M", Age: 2}}); err != nil {
+		t.Fatal(err)
+	}
+	for _, q := range []string{"caseuser", "CASEUSER", "CaseUser"} {
+		p, err := s.GetProfileByLogin(ctx, q)
+		if err != nil {
+			t.Fatalf("GetProfileByLogin(%q): %v", q, err)
+		}
+		if p.UserID != id || len(p.Pets) != 1 || p.Pets[0].Name != "Rex" {
+			t.Fatalf("GetProfileByLogin(%q) wrong: %+v", q, p)
+		}
+	}
+	// Unknown login → ErrNotFound (drives the {code:404} envelope in the handler).
+	if _, err := s.GetProfileByLogin(ctx, "nobody"); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("want ErrNotFound, got %v", err)
 	}
 }
 
