@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package profiles.v1;
+
+option go_package = "auth-service/pkg/api/profiles/v1;profilesv1";
+
+// Minimal Profiles contract slice that Auth depends on. The Profiles team owns
+// the full service; this file declares ONLY the internal CreateProfile RPC that
+// Auth calls on successful Register. It must match the Profiles service's real
+// proto (see Docs/02-Backend.md "CreateProfile (internal, called by Auth)").
+//
+// CreateProfile is idempotent so Auth can safely retry the handoff.
+service Profiles {
+  rpc CreateProfile(CreateProfileRequest) returns (CreateProfileResponse);
+}
+
+message CreateProfileRequest {
+  string user_id = 1; // string UUID, the id Auth minted for the new user
+  string login = 2;
+  string email = 3;
+}
+
+message CreateProfileResponse {
+  int32 code = 1;
+  string message = 2;
+}
