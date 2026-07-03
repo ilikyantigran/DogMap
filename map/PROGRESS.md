@@ -36,6 +36,7 @@ architecture, data model) + `../Docs/01-Idea.md` (locked decisions, Path 1).
   (0→1→0 visitor count), privacy filtering, token-not-body identity, radius=5000
   pass-through, auth/validation/not-found/internal error mapping; janitor tests
   cover stale-only removal + no-op. `go vet` + `go build` + `go test ./...` clean.
+- Milestone commit `af100c1` in worktree (full scaffold + tests).
 
 ## Next
 - Integration test through the transport edge against real Postgres+PostGIS and
