@@ -1,0 +1,94 @@
+# DogMap — full local stack for verification.
+#
+#   docker compose up --build
+#
+# Brings up Postgres+PostGIS, Valkey, and the three Go services (Auth, Profiles,
+# Map). The service images already bake CONFIG_PATH=/app/configs/values_docker.yaml,
+# whose addresses (postgres:5432, valkey:6379, profiles:8082) match the service
+# names below — so no env overrides are needed here.
+#
+# Schemas: the services do NOT run migrations on boot. For this dev stack the three
+# per-service schemas are applied once by Postgres' initdb mechanism (see the
+# mounts under `postgres`). initdb only runs on a FRESH volume — to re-apply after
+# changing a migration, recreate the volume: `docker compose down -v`.
+name: dogmap
+
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: dogmap
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # One database (dogmap), one schema per service. Each file is idempotent
+      # (CREATE ... IF NOT EXISTS) and self-contained (creates its own extension
+      # + schema). Ordered names only for readability.
+      - ./auth/migrations/0001_init.up.sql:/docker-entrypoint-initdb.d/10-auth.sql:ro
+      - ./profiles/internal/domain/postgres/migrations/0001_init.up.sql:/docker-entrypoint-initdb.d/20-profiles.sql:ro
+      - ./map/migrations/0001_map_schema.up.sql:/docker-entrypoint-initdb.d/30-map.sql:ro
+    healthcheck:
+      # -h 127.0.0.1 forces a TCP check: during first-init the temp server listens
+      # only on the unix socket, so this stays "unhealthy" until initdb.d has run
+      # and the real server is accepting TCP — i.e. schemas are guaranteed applied.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres -d dogmap"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+      start_period: 5s
+    restart: unless-stopped
+
+  valkey:
+    image: valkey/valkey:8-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  auth:
+    build: ./auth
+    depends_on:
+      postgres:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+      profiles:
+        condition: service_started   # CreateProfile handoff target (dial is lazy)
+    ports:
+      - "8080:8080"   # gRPC
+      - "8081:8081"   # HTTP gateway + /swagger/ + /metrics
+    restart: on-failure
+
+  profiles:
+    build: ./profiles
+    depends_on:
+      postgres:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+    ports:
+      - "8082:8082"   # gRPC
+      - "8083:8083"   # HTTP gateway + /swagger/ + /metrics
+    restart: on-failure
+
+  map:
+    build: ./map
+    depends_on:
+      postgres:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+    ports:
+      - "8084:8084"   # gRPC
+      - "8085:8085"   # HTTP gateway + /swagger/ + /metrics
+    restart: on-failure
+
+volumes:
+  pgdata:
