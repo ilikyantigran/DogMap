@@ -19,10 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Profiles_CreateProfile_FullMethodName = "/profiles.v1.Profiles/CreateProfile"
+	ProfilesService_CreateProfile_FullMethodName = "/profiles.v1.ProfilesService/CreateProfile"
 )
 
-// ProfilesClient is the client API for Profiles service.
+// ProfilesServiceClient is the client API for ProfilesService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
@@ -32,30 +32,30 @@ const (
 // proto (see Docs/02-Backend.md "CreateProfile (internal, called by Auth)").
 //
 // CreateProfile is idempotent so Auth can safely retry the handoff.
-type ProfilesClient interface {
+type ProfilesServiceClient interface {
 	CreateProfile(ctx context.Context, in *CreateProfileRequest, opts ...grpc.CallOption) (*CreateProfileResponse, error)
 }
 
-type profilesClient struct {
+type profilesServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewProfilesClient(cc grpc.ClientConnInterface) ProfilesClient {
-	return &profilesClient{cc}
+func NewProfilesServiceClient(cc grpc.ClientConnInterface) ProfilesServiceClient {
+	return &profilesServiceClient{cc}
 }
 
-func (c *profilesClient) CreateProfile(ctx context.Context, in *CreateProfileRequest, opts ...grpc.CallOption) (*CreateProfileResponse, error) {
+func (c *profilesServiceClient) CreateProfile(ctx context.Context, in *CreateProfileRequest, opts ...grpc.CallOption) (*CreateProfileResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateProfileResponse)
-	err := c.cc.Invoke(ctx, Profiles_CreateProfile_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, ProfilesService_CreateProfile_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// ProfilesServer is the server API for Profiles service.
-// All implementations must embed UnimplementedProfilesServer
+// ProfilesServiceServer is the server API for ProfilesService service.
+// All implementations must embed UnimplementedProfilesServiceServer
 // for forward compatibility.
 //
 // Minimal Profiles contract slice that Auth depends on. The Profiles team owns
@@ -64,70 +64,70 @@ func (c *profilesClient) CreateProfile(ctx context.Context, in *CreateProfileReq
 // proto (see Docs/02-Backend.md "CreateProfile (internal, called by Auth)").
 //
 // CreateProfile is idempotent so Auth can safely retry the handoff.
-type ProfilesServer interface {
+type ProfilesServiceServer interface {
 	CreateProfile(context.Context, *CreateProfileRequest) (*CreateProfileResponse, error)
-	mustEmbedUnimplementedProfilesServer()
+	mustEmbedUnimplementedProfilesServiceServer()
 }
 
-// UnimplementedProfilesServer must be embedded to have
+// UnimplementedProfilesServiceServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedProfilesServer struct{}
+type UnimplementedProfilesServiceServer struct{}
 
-func (UnimplementedProfilesServer) CreateProfile(context.Context, *CreateProfileRequest) (*CreateProfileResponse, error) {
+func (UnimplementedProfilesServiceServer) CreateProfile(context.Context, *CreateProfileRequest) (*CreateProfileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateProfile not implemented")
 }
-func (UnimplementedProfilesServer) mustEmbedUnimplementedProfilesServer() {}
-func (UnimplementedProfilesServer) testEmbeddedByValue()                  {}
+func (UnimplementedProfilesServiceServer) mustEmbedUnimplementedProfilesServiceServer() {}
+func (UnimplementedProfilesServiceServer) testEmbeddedByValue()                         {}
 
-// UnsafeProfilesServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to ProfilesServer will
+// UnsafeProfilesServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ProfilesServiceServer will
 // result in compilation errors.
-type UnsafeProfilesServer interface {
-	mustEmbedUnimplementedProfilesServer()
+type UnsafeProfilesServiceServer interface {
+	mustEmbedUnimplementedProfilesServiceServer()
 }
 
-func RegisterProfilesServer(s grpc.ServiceRegistrar, srv ProfilesServer) {
-	// If the following call panics, it indicates UnimplementedProfilesServer was
+func RegisterProfilesServiceServer(s grpc.ServiceRegistrar, srv ProfilesServiceServer) {
+	// If the following call panics, it indicates UnimplementedProfilesServiceServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&Profiles_ServiceDesc, srv)
+	s.RegisterService(&ProfilesService_ServiceDesc, srv)
 }
 
-func _Profiles_CreateProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ProfilesService_CreateProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateProfileRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ProfilesServer).CreateProfile(ctx, in)
+		return srv.(ProfilesServiceServer).CreateProfile(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Profiles_CreateProfile_FullMethodName,
+		FullMethod: ProfilesService_CreateProfile_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProfilesServer).CreateProfile(ctx, req.(*CreateProfileRequest))
+		return srv.(ProfilesServiceServer).CreateProfile(ctx, req.(*CreateProfileRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// Profiles_ServiceDesc is the grpc.ServiceDesc for Profiles service.
+// ProfilesService_ServiceDesc is the grpc.ServiceDesc for ProfilesService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Profiles_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "profiles.v1.Profiles",
-	HandlerType: (*ProfilesServer)(nil),
+var ProfilesService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "profiles.v1.ProfilesService",
+	HandlerType: (*ProfilesServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "CreateProfile",
-			Handler:    _Profiles_CreateProfile_Handler,
+			Handler:    _ProfilesService_CreateProfile_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

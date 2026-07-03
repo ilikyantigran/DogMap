@@ -59,7 +59,7 @@ type Server struct {
 	creds      CredentialStore
 	sessions   SessionStore
 	hasher     PasswordHasher
-	profiles   profilesv1.ProfilesClient
+	profiles   profilesv1.ProfilesServiceClient
 	sessionTTL time.Duration
 }
 
@@ -67,7 +67,7 @@ func NewServer(
 	creds CredentialStore,
 	sessions SessionStore,
 	hasher PasswordHasher,
-	profiles profilesv1.ProfilesClient,
+	profiles profilesv1.ProfilesServiceClient,
 	sessionTTL time.Duration,
 ) *Server {
 	if sessionTTL <= 0 {

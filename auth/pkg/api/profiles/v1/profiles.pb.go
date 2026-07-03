@@ -144,8 +144,8 @@ const file_profiles_v1_profiles_proto_rawDesc = "" +
 	"\x05email\x18\x03 \x01(\tR\x05email\"E\n" +
 	"\x15CreateProfileResponse\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\x05R\x04code\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage2b\n" +
-	"\bProfiles\x12V\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage2i\n" +
+	"\x0fProfilesService\x12V\n" +
 	"\rCreateProfile\x12!.profiles.v1.CreateProfileRequest\x1a\".profiles.v1.CreateProfileResponseB-Z+auth-service/pkg/api/profiles/v1;profilesv1b\x06proto3"
 
 var (
@@ -166,8 +166,8 @@ var file_profiles_v1_profiles_proto_goTypes = []any{
 	(*CreateProfileResponse)(nil), // 1: profiles.v1.CreateProfileResponse
 }
 var file_profiles_v1_profiles_proto_depIdxs = []int32{
-	0, // 0: profiles.v1.Profiles.CreateProfile:input_type -> profiles.v1.CreateProfileRequest
-	1, // 1: profiles.v1.Profiles.CreateProfile:output_type -> profiles.v1.CreateProfileResponse
+	0, // 0: profiles.v1.ProfilesService.CreateProfile:input_type -> profiles.v1.CreateProfileRequest
+	1, // 1: profiles.v1.ProfilesService.CreateProfile:output_type -> profiles.v1.CreateProfileResponse
 	1, // [1:2] is the sub-list for method output_type
 	0, // [0:1] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name

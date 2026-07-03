@@ -13,7 +13,7 @@ import (
 )
 
 type Clients struct {
-	Profiles profilesv1.ProfilesClient
+	Profiles profilesv1.ProfilesServiceClient
 
 	conns []*grpc.ClientConn
 }
@@ -30,7 +30,7 @@ func Dial(profilesAddr string) (*Clients, error) {
 		return nil, fmt.Errorf("dial profiles (%s): %w", profilesAddr, err)
 	}
 	c.conns = append(c.conns, cc)
-	c.Profiles = profilesv1.NewProfilesClient(cc)
+	c.Profiles = profilesv1.NewProfilesServiceClient(cc)
 	return c, nil
 }
 
