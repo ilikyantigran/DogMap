@@ -1,0 +1,190 @@
+syntax = "proto3";
+
+package profiles.v1;
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+
+option go_package = "profiles/pkg/api/profiles/v1;profilesv1";
+
+// Profiles owns user profiles, pets, the friend graph, and blocking. It never
+// returns presence itself (Map owns presence) — instead it keeps the
+// `friends:{user_id}` Valkey set fresh so Map can do privacy filtering.
+//
+// Edge RPCs derive the acting user from the opaque session token in the
+// `auth_token` header (resolved via Valkey `session:{token}`); body ids are only
+// ever *target* ids. CreateProfile is internal (called by Auth over gRPC) and is
+// intentionally NOT annotated for the HTTP edge.
+service ProfilesService {
+  // GetUserInfo returns the target's profile. Full shape (incl. email/phone) to
+  // self or friends; reduced shape (no PII) to non-friends.
+  rpc GetUserInfo(GetUserInfoRequest) returns (GetUserInfoResponse) {
+    option (google.api.http) = {
+      post: "/v1/profiles/get"
+      body: "*"
+    };
+  }
+
+  // EditUser updates the *acting user's own* profile (name/surname/phone/pets).
+  // No user_id in the body; login/email are not editable here.
+  rpc EditUser(EditUserRequest) returns (GetUserInfoResponse) {
+    option (google.api.http) = {
+      post: "/v1/profiles/edit"
+      body: "*"
+    };
+  }
+
+  rpc SendFriendRequest(SendFriendRequestRequest) returns (SendFriendRequestResponse) {
+    option (google.api.http) = {
+      post: "/v1/friends/request"
+      body: "*"
+    };
+  }
+
+  rpc SendFriendResponse(SendFriendResponseRequest) returns (StatusResponse) {
+    option (google.api.http) = {
+      post: "/v1/friends/respond"
+      body: "*"
+    };
+  }
+
+  rpc ListFriends(ListFriendsRequest) returns (ListFriendsResponse) {
+    option (google.api.http) = {
+      post: "/v1/friends/list"
+      body: "*"
+    };
+  }
+
+  rpc RemoveFriend(TargetRequest) returns (StatusResponse) {
+    option (google.api.http) = {
+      post: "/v1/friends/remove"
+      body: "*"
+    };
+  }
+
+  rpc BlockUser(TargetRequest) returns (StatusResponse) {
+    option (google.api.http) = {
+      post: "/v1/friends/block"
+      body: "*"
+    };
+  }
+
+  rpc UnblockUser(TargetRequest) returns (StatusResponse) {
+    option (google.api.http) = {
+      post: "/v1/friends/unblock"
+      body: "*"
+    };
+  }
+
+  // CreateProfile is internal: called by Auth after a successful Register to
+  // seed an empty profile row. Idempotent. NOT exposed at the HTTP edge.
+  rpc CreateProfile(CreateProfileRequest) returns (StatusResponse);
+}
+
+// FriendStatus is computed for the calling user relative to a target.
+enum FriendStatus {
+  FRIEND_STATUS_NONE = 0;
+  FRIEND_STATUS_PENDING_OUT = 1; // caller sent a request that is still pending
+  FRIEND_STATUS_PENDING_IN = 2;  // target sent the caller a pending request
+  FRIEND_STATUS_FRIENDS = 3;
+  FRIEND_STATUS_BLOCKED = 4;     // caller blocked target, or target blocked caller
+}
+
+message Pet {
+  string breed = 1;
+  string name = 2;
+  string sex = 3 [(validate.rules).string = {in: ["M", "F"]}]; // "M" | "F"
+  bool is_castrated = 4;
+  int32 age = 5 [(validate.rules).int32 = {gte: 0, lte: 100}];
+}
+
+message GetUserInfoRequest {
+  string user_id_target = 1 [(validate.rules).string.uuid = true];
+}
+
+// GetUserInfoResponse carries the full shape for self/friends and the reduced
+// shape for non-friends. In the reduced shape `email` and `phone` are empty and
+// `current_object_id` is omitted; `has_pii` marks which shape this is.
+message GetUserInfoResponse {
+  int32 code = 1;
+  string message = 2;
+
+  string user_id = 3;
+  string login = 4;
+  string name = 5;
+  string surname = 6;
+  string email = 7;             // full shape only
+  string phone = 8;             // full shape only
+  repeated Pet pets = 9;
+  bool on_walk = 10;            // derived by Map; Profiles reports false for MVP
+  string current_object_id = 11; // full shape only; empty when not on a walk
+  FriendStatus friend_status = 12;
+  bool has_pii = 13;            // true = full shape returned, false = reduced
+}
+
+message EditUserRequest {
+  // No user_id: acting user comes from the token.
+  string name = 1;
+  string surname = 2;
+  string phone = 3;
+  repeated Pet pets = 4;
+}
+
+message SendFriendRequestRequest {
+  string user_id_target = 1 [(validate.rules).string.uuid = true];
+}
+
+message SendFriendRequestResponse {
+  int32 code = 1;
+  string message = 2;
+  string friend_request_id = 3;
+}
+
+message SendFriendResponseRequest {
+  string friend_request_id = 1 [(validate.rules).string.uuid = true];
+  bool resolution = 2; // true = accept, false = decline
+}
+
+message ListFriendsRequest {}
+
+message Friend {
+  string user_id = 1;
+  string login = 2;
+  bool on_walk = 3;              // derived by Map; false for MVP in Profiles
+  string current_object_id = 4;
+}
+
+message IncomingRequest {
+  string from_user_id = 1;
+  string from_login = 2;
+  string friend_request_id = 3;
+}
+
+message OutgoingRequest {
+  string to_user_id = 1;
+  string friend_request_id = 2;
+}
+
+message ListFriendsResponse {
+  int32 code = 1;
+  string message = 2;
+  repeated Friend friends = 3;
+  repeated IncomingRequest incoming_requests = 4;
+  repeated OutgoingRequest outgoing_requests = 5;
+}
+
+// TargetRequest is the shared shape for RemoveFriend/BlockUser/UnblockUser.
+message TargetRequest {
+  string user_id_target = 1 [(validate.rules).string.uuid = true];
+}
+
+message CreateProfileRequest {
+  string user_id = 1 [(validate.rules).string.uuid = true];
+  string login = 2 [(validate.rules).string.min_len = 1];
+  string email = 3 [(validate.rules).string.min_len = 1];
+}
+
+message StatusResponse {
+  int32 code = 1;
+  string message = 2;
+}

@@ -1,0 +1,12 @@
+# Config for running locally with `go run` (host addresses).
+# Same keys as values_docker.yaml; only the values differ.
+profiles_service:
+  host: localhost
+  grpc_port: "8082"
+  http_port: "8083"
+
+postgres:
+  dsn: postgres://postgres:postgres@localhost:5432/dogmap?sslmode=disable
+
+valkey:
+  address: 127.0.0.1:6379

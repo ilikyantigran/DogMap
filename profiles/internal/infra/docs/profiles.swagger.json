@@ -1,0 +1,565 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "profiles/v1/profiles.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "ProfilesService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/friends/block": {
+      "post": {
+        "operationId": "ProfilesService_BlockUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1StatusResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TargetRequest is the shared shape for RemoveFriend/BlockUser/UnblockUser.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1TargetRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ProfilesService"
+        ]
+      }
+    },
+    "/v1/friends/list": {
+      "post": {
+        "operationId": "ProfilesService_ListFriends",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListFriendsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1ListFriendsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ProfilesService"
+        ]
+      }
+    },
+    "/v1/friends/remove": {
+      "post": {
+        "operationId": "ProfilesService_RemoveFriend",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1StatusResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TargetRequest is the shared shape for RemoveFriend/BlockUser/UnblockUser.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1TargetRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ProfilesService"
+        ]
+      }
+    },
+    "/v1/friends/request": {
+      "post": {
+        "operationId": "ProfilesService_SendFriendRequest",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1SendFriendRequestResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1SendFriendRequestRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ProfilesService"
+        ]
+      }
+    },
+    "/v1/friends/respond": {
+      "post": {
+        "operationId": "ProfilesService_SendFriendResponse",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1StatusResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1SendFriendResponseRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ProfilesService"
+        ]
+      }
+    },
+    "/v1/friends/unblock": {
+      "post": {
+        "operationId": "ProfilesService_UnblockUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1StatusResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TargetRequest is the shared shape for RemoveFriend/BlockUser/UnblockUser.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1TargetRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ProfilesService"
+        ]
+      }
+    },
+    "/v1/profiles/edit": {
+      "post": {
+        "summary": "EditUser updates the *acting user's own* profile (name/surname/phone/pets).\nNo user_id in the body; login/email are not editable here.",
+        "operationId": "ProfilesService_EditUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetUserInfoResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1EditUserRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ProfilesService"
+        ]
+      }
+    },
+    "/v1/profiles/get": {
+      "post": {
+        "summary": "GetUserInfo returns the target's profile. Full shape (incl. email/phone) to\nself or friends; reduced shape (no PII) to non-friends.",
+        "operationId": "ProfilesService_GetUserInfo",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetUserInfoResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1GetUserInfoRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ProfilesService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1EditUserRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "No user_id: acting user comes from the token."
+        },
+        "surname": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "pets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Pet"
+          }
+        }
+      }
+    },
+    "v1Friend": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "login": {
+          "type": "string"
+        },
+        "onWalk": {
+          "type": "boolean",
+          "title": "derived by Map; false for MVP in Profiles"
+        },
+        "currentObjectId": {
+          "type": "string"
+        }
+      }
+    },
+    "v1FriendStatus": {
+      "type": "string",
+      "enum": [
+        "FRIEND_STATUS_NONE",
+        "FRIEND_STATUS_PENDING_OUT",
+        "FRIEND_STATUS_PENDING_IN",
+        "FRIEND_STATUS_FRIENDS",
+        "FRIEND_STATUS_BLOCKED"
+      ],
+      "default": "FRIEND_STATUS_NONE",
+      "description": "FriendStatus is computed for the calling user relative to a target.\n\n - FRIEND_STATUS_PENDING_OUT: caller sent a request that is still pending\n - FRIEND_STATUS_PENDING_IN: target sent the caller a pending request\n - FRIEND_STATUS_BLOCKED: caller blocked target, or target blocked caller"
+    },
+    "v1GetUserInfoRequest": {
+      "type": "object",
+      "properties": {
+        "userIdTarget": {
+          "type": "string"
+        }
+      }
+    },
+    "v1GetUserInfoResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "login": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "surname": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string",
+          "title": "full shape only"
+        },
+        "phone": {
+          "type": "string",
+          "title": "full shape only"
+        },
+        "pets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Pet"
+          }
+        },
+        "onWalk": {
+          "type": "boolean",
+          "title": "derived by Map; Profiles reports false for MVP"
+        },
+        "currentObjectId": {
+          "type": "string",
+          "title": "full shape only; empty when not on a walk"
+        },
+        "friendStatus": {
+          "$ref": "#/definitions/v1FriendStatus"
+        },
+        "hasPii": {
+          "type": "boolean",
+          "title": "true = full shape returned, false = reduced"
+        }
+      },
+      "description": "GetUserInfoResponse carries the full shape for self/friends and the reduced\nshape for non-friends. In the reduced shape `email` and `phone` are empty and\n`current_object_id` is omitted; `has_pii` marks which shape this is."
+    },
+    "v1IncomingRequest": {
+      "type": "object",
+      "properties": {
+        "fromUserId": {
+          "type": "string"
+        },
+        "fromLogin": {
+          "type": "string"
+        },
+        "friendRequestId": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ListFriendsRequest": {
+      "type": "object"
+    },
+    "v1ListFriendsResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "friends": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Friend"
+          }
+        },
+        "incomingRequests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1IncomingRequest"
+          }
+        },
+        "outgoingRequests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1OutgoingRequest"
+          }
+        }
+      }
+    },
+    "v1OutgoingRequest": {
+      "type": "object",
+      "properties": {
+        "toUserId": {
+          "type": "string"
+        },
+        "friendRequestId": {
+          "type": "string"
+        }
+      }
+    },
+    "v1Pet": {
+      "type": "object",
+      "properties": {
+        "breed": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "sex": {
+          "type": "string",
+          "title": "\"M\" | \"F\""
+        },
+        "isCastrated": {
+          "type": "boolean"
+        },
+        "age": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "v1SendFriendRequestRequest": {
+      "type": "object",
+      "properties": {
+        "userIdTarget": {
+          "type": "string"
+        }
+      }
+    },
+    "v1SendFriendRequestResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "friendRequestId": {
+          "type": "string"
+        }
+      }
+    },
+    "v1SendFriendResponseRequest": {
+      "type": "object",
+      "properties": {
+        "friendRequestId": {
+          "type": "string"
+        },
+        "resolution": {
+          "type": "boolean",
+          "title": "true = accept, false = decline"
+        }
+      }
+    },
+    "v1StatusResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "v1TargetRequest": {
+      "type": "object",
+      "properties": {
+        "userIdTarget": {
+          "type": "string"
+        }
+      },
+      "description": "TargetRequest is the shared shape for RemoveFriend/BlockUser/UnblockUser."
+    }
+  }
+}
