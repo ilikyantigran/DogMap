@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	pg "profiles/internal/domain/postgres"
@@ -49,6 +50,17 @@ func (f *fakeStore) GetProfile(_ context.Context, userID string) (*pg.Profile, e
 	}
 	cp := *p
 	return &cp, nil
+}
+
+// GetProfileByLogin models Postgres citext: matching is case-insensitive.
+func (f *fakeStore) GetProfileByLogin(_ context.Context, login string) (*pg.Profile, error) {
+	for _, p := range f.profiles {
+		if strings.EqualFold(p.Login, login) {
+			cp := *p
+			return &cp, nil
+		}
+	}
+	return nil, pg.ErrNotFound
 }
 
 func (f *fakeStore) LoginFor(_ context.Context, userID string) (string, error) {
@@ -537,5 +549,107 @@ func TestRemoveFriend_RefreshesCaches(t *testing.T) {
 	}
 	if _, ok := cache.friends["u2"]; !ok {
 		t.Fatal("cache must be refreshed for u2")
+	}
+}
+
+// --- FindUserByLogin (find-friend-by-login discovery) -----------------------
+
+func TestFindUserByLogin_NoToken_Unauthorized(t *testing.T) {
+	s, _, _ := fixture()
+	resp, err := s.FindUserByLogin(context.Background(), &profilesv1.FindUserByLoginRequest{Login: "Test2"})
+	if err != nil {
+		t.Fatalf("unexpected err: %v", err)
+	}
+	if resp.Code != codeUnauthorized {
+		t.Fatalf("want %d, got %d", codeUnauthorized, resp.Code)
+	}
+}
+
+func TestFindUserByLogin_Found_ReducedShapeNoPII(t *testing.T) {
+	s, store, _ := fixture()
+	// Give u2 a pet so we prove non-PII fields still come through.
+	store.profiles["u2"].Pets = []pg.Pet{{Breed: "Poodle", Name: "Bruno", Sex: "M", IsCastrated: true, Age: 3}}
+	// u1 searches for u2 (a stranger).
+	resp, err := s.FindUserByLogin(ctxWithToken("tok1"), &profilesv1.FindUserByLoginRequest{Login: "Test2"})
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	if resp.Code != codeOK {
+		t.Fatalf("want ok, got code=%d msg=%q", resp.Code, resp.Message)
+	}
+	if resp.HasPii {
+		t.Fatal("discovery lookup must return reduced shape (has_pii=false)")
+	}
+	if resp.Email != "" || resp.Phone != "" {
+		t.Fatalf("PII leaked from find-by-login: email=%q phone=%q", resp.Email, resp.Phone)
+	}
+	if resp.CurrentObjectId != "" || resp.OnWalk {
+		t.Fatal("Profiles must not report presence")
+	}
+	// Non-PII discovery fields must be present so the frontend can show the card.
+	if resp.UserId != "u2" || resp.Login != "Test2" || resp.Name != "Bob" {
+		t.Fatalf("reduced shape should carry user_id/login/name, got %+v", resp)
+	}
+	if len(resp.Pets) != 1 || resp.Pets[0].Name != "Bruno" {
+		t.Fatalf("pets should be included in reduced shape, got %+v", resp.Pets)
+	}
+	if resp.FriendStatus != profilesv1.FriendStatus_FRIEND_STATUS_NONE {
+		t.Fatalf("want NONE, got %v", resp.FriendStatus)
+	}
+}
+
+func TestFindUserByLogin_CaseInsensitive(t *testing.T) {
+	s, _, _ := fixture()
+	// Stored login is "Test2"; searching lower-case must still find it (citext).
+	resp, err := s.FindUserByLogin(ctxWithToken("tok1"), &profilesv1.FindUserByLoginRequest{Login: "test2"})
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	if resp.Code != codeOK || resp.UserId != "u2" {
+		t.Fatalf("case-insensitive lookup failed: code=%d id=%q", resp.Code, resp.UserId)
+	}
+}
+
+func TestFindUserByLogin_NotFound_Envelope(t *testing.T) {
+	s, _, _ := fixture()
+	resp, err := s.FindUserByLogin(ctxWithToken("tok1"), &profilesv1.FindUserByLoginRequest{Login: "ghost"})
+	if err != nil {
+		t.Fatalf("not-found must be an envelope, not a Go error: %v", err)
+	}
+	if resp.Code != codeNotFound {
+		t.Fatalf("want %d, got %d", codeNotFound, resp.Code)
+	}
+	if resp.Message == "" {
+		t.Fatal("not-found envelope must carry a message")
+	}
+	if resp.UserId != "" {
+		t.Fatalf("not-found must not leak a user, got %q", resp.UserId)
+	}
+}
+
+// Even when the looked-up user is already a friend, discovery stays reduced
+// (no PII) — but friend_status must reflect the real relationship so the
+// frontend renders the correct button.
+func TestFindUserByLogin_FriendStillReducedButStatusFriends(t *testing.T) {
+	s, store, _ := fixture()
+	store.friendships[[2]string{"u1", "u2"}] = true
+	store.friendships[[2]string{"u2", "u1"}] = true
+	resp, err := s.FindUserByLogin(ctxWithToken("tok1"), &profilesv1.FindUserByLoginRequest{Login: "Test2"})
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	if resp.HasPii || resp.Email != "" || resp.Phone != "" {
+		t.Fatalf("find-by-login must stay reduced even for a friend, got %+v", resp)
+	}
+	if resp.FriendStatus != profilesv1.FriendStatus_FRIEND_STATUS_FRIENDS {
+		t.Fatalf("want FRIENDS status, got %v", resp.FriendStatus)
+	}
+}
+
+func TestFindUserByLogin_BlankLogin_BadRequest(t *testing.T) {
+	s, _, _ := fixture()
+	resp, _ := s.FindUserByLogin(ctxWithToken("tok1"), &profilesv1.FindUserByLoginRequest{Login: "   "})
+	if resp.Code != codeBadRequest {
+		t.Fatalf("want bad request, got %d", resp.Code)
 	}
 }

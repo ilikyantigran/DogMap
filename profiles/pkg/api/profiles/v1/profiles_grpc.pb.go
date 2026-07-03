@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	ProfilesService_GetUserInfo_FullMethodName        = "/profiles.v1.ProfilesService/GetUserInfo"
+	ProfilesService_FindUserByLogin_FullMethodName    = "/profiles.v1.ProfilesService/FindUserByLogin"
 	ProfilesService_EditUser_FullMethodName           = "/profiles.v1.ProfilesService/EditUser"
 	ProfilesService_SendFriendRequest_FullMethodName  = "/profiles.v1.ProfilesService/SendFriendRequest"
 	ProfilesService_SendFriendResponse_FullMethodName = "/profiles.v1.ProfilesService/SendFriendResponse"
@@ -46,6 +47,15 @@ type ProfilesServiceClient interface {
 	// GetUserInfo returns the target's profile. Full shape (incl. email/phone) to
 	// self or friends; reduced shape (no PII) to non-friends.
 	GetUserInfo(ctx context.Context, in *GetUserInfoRequest, opts ...grpc.CallOption) (*GetUserInfoResponse, error)
+	// FindUserByLogin looks up a user by login (case-insensitive; login is citext)
+	// for stranger discovery — the frontend's "find a friend by login" search. It
+	// ALWAYS returns the reduced (no-PII) shape, even when the looked-up user is
+	// already a friend: a discovery endpoint must not be a PII surface, and full
+	// details for real friends are available via GetUserInfo. friend_status is
+	// still computed so the frontend can render the right button. If no user has
+	// that login, the response carries a not-found envelope (code/message), not an
+	// error.
+	FindUserByLogin(ctx context.Context, in *FindUserByLoginRequest, opts ...grpc.CallOption) (*GetUserInfoResponse, error)
 	// EditUser updates the *acting user's own* profile (name/surname/phone/pets).
 	// No user_id in the body; login/email are not editable here.
 	EditUser(ctx context.Context, in *EditUserRequest, opts ...grpc.CallOption) (*GetUserInfoResponse, error)
@@ -72,6 +82,16 @@ func (c *profilesServiceClient) GetUserInfo(ctx context.Context, in *GetUserInfo
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetUserInfoResponse)
 	err := c.cc.Invoke(ctx, ProfilesService_GetUserInfo_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *profilesServiceClient) FindUserByLogin(ctx context.Context, in *FindUserByLoginRequest, opts ...grpc.CallOption) (*GetUserInfoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUserInfoResponse)
+	err := c.cc.Invoke(ctx, ProfilesService_FindUserByLogin_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -174,6 +194,15 @@ type ProfilesServiceServer interface {
 	// GetUserInfo returns the target's profile. Full shape (incl. email/phone) to
 	// self or friends; reduced shape (no PII) to non-friends.
 	GetUserInfo(context.Context, *GetUserInfoRequest) (*GetUserInfoResponse, error)
+	// FindUserByLogin looks up a user by login (case-insensitive; login is citext)
+	// for stranger discovery — the frontend's "find a friend by login" search. It
+	// ALWAYS returns the reduced (no-PII) shape, even when the looked-up user is
+	// already a friend: a discovery endpoint must not be a PII surface, and full
+	// details for real friends are available via GetUserInfo. friend_status is
+	// still computed so the frontend can render the right button. If no user has
+	// that login, the response carries a not-found envelope (code/message), not an
+	// error.
+	FindUserByLogin(context.Context, *FindUserByLoginRequest) (*GetUserInfoResponse, error)
 	// EditUser updates the *acting user's own* profile (name/surname/phone/pets).
 	// No user_id in the body; login/email are not editable here.
 	EditUser(context.Context, *EditUserRequest) (*GetUserInfoResponse, error)
@@ -198,6 +227,9 @@ type UnimplementedProfilesServiceServer struct{}
 
 func (UnimplementedProfilesServiceServer) GetUserInfo(context.Context, *GetUserInfoRequest) (*GetUserInfoResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetUserInfo not implemented")
+}
+func (UnimplementedProfilesServiceServer) FindUserByLogin(context.Context, *FindUserByLoginRequest) (*GetUserInfoResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method FindUserByLogin not implemented")
 }
 func (UnimplementedProfilesServiceServer) EditUser(context.Context, *EditUserRequest) (*GetUserInfoResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method EditUser not implemented")
@@ -258,6 +290,24 @@ func _ProfilesService_GetUserInfo_Handler(srv interface{}, ctx context.Context, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ProfilesServiceServer).GetUserInfo(ctx, req.(*GetUserInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProfilesService_FindUserByLogin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FindUserByLoginRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfilesServiceServer).FindUserByLogin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProfilesService_FindUserByLogin_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfilesServiceServer).FindUserByLogin(ctx, req.(*FindUserByLoginRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -416,6 +466,10 @@ var ProfilesService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUserInfo",
 			Handler:    _ProfilesService_GetUserInfo_Handler,
+		},
+		{
+			MethodName: "FindUserByLogin",
+			Handler:    _ProfilesService_FindUserByLogin_Handler,
 		},
 		{
 			MethodName: "EditUser",

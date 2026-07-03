@@ -117,6 +117,23 @@ func (s *Store) GetProfile(ctx context.Context, userID string) (*Profile, error)
 	return &p, rows.Err()
 }
 
+// GetProfileByLogin returns the profile row + pets for a login, or ErrNotFound.
+// login is citext, so the match is case-insensitive without any lower() in SQL.
+// This backs the find-friend-by-login discovery lookup.
+func (s *Store) GetProfileByLogin(ctx context.Context, login string) (*Profile, error) {
+	var userID string
+	err := s.pool.QueryRow(ctx, `
+		SELECT user_id FROM profiles.profiles WHERE login = $1`, login).Scan(&userID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("postgres: get profile by login: %w", err)
+	}
+	// Reuse GetProfile so the pets projection stays in one place.
+	return s.GetProfile(ctx, userID)
+}
+
 // LoginFor returns the login for a user id (used for ListFriends projections).
 func (s *Store) LoginFor(ctx context.Context, userID string) (string, error) {
 	var login string

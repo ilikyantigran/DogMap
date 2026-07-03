@@ -35,6 +35,7 @@ const (
 type profileStore interface {
 	CreateProfile(ctx context.Context, userID, login, email string) error
 	GetProfile(ctx context.Context, userID string) (*pg.Profile, error)
+	GetProfileByLogin(ctx context.Context, login string) (*pg.Profile, error)
 	LoginFor(ctx context.Context, userID string) (string, error)
 	UpdateProfile(ctx context.Context, userID, name, surname, phone string, pets []pg.Pet) error
 
@@ -129,25 +130,50 @@ func (s *Server) GetUserInfo(ctx context.Context, req *profilesv1.GetUserInfoReq
 
 	// Full shape is returned to self or friends only. PII (email/phone) and
 	// current_object_id are stripped for everyone else.
-	full := caller == target || status == profilesv1.FriendStatus_FRIEND_STATUS_FRIENDS
-
-	resp := &profilesv1.GetUserInfoResponse{
-		Code:         codeOK,
-		UserId:       profile.UserID,
-		Login:        profile.Login,
-		Name:         profile.Name,
-		Surname:      profile.Surname,
-		Pets:         toProtoPets(profile.Pets),
-		OnWalk:       false, // Map owns presence; Profiles never reports it.
-		FriendStatus: status,
-		HasPii:       full,
-	}
-	if full {
+	resp := reducedUserInfo(profile, status)
+	if caller == target || status == profilesv1.FriendStatus_FRIEND_STATUS_FRIENDS {
+		resp.HasPii = true
 		resp.Email = profile.Email
 		resp.Phone = profile.Phone
 		// current_object_id would be filled by Map; Profiles leaves it empty.
 	}
 	return resp, nil
+}
+
+// FindUserByLogin is the find-friend-by-login discovery lookup. It resolves the
+// login (case-insensitive; login is citext) and ALWAYS returns the reduced
+// (no-PII) shape — even when the looked-up user is already a friend — so this
+// search endpoint is never a PII surface. friend_status is still computed for
+// the caller so the frontend can render the right button. A missing login is a
+// {code, message} not-found envelope, not a Go/gRPC error.
+func (s *Server) FindUserByLogin(ctx context.Context, req *profilesv1.FindUserByLoginRequest) (*profilesv1.GetUserInfoResponse, error) {
+	caller, err := s.actingUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if caller == "" {
+		return &profilesv1.GetUserInfoResponse{Code: codeUnauthorized, Message: "unauthorized"}, nil
+	}
+	login := strings.TrimSpace(req.GetLogin())
+	if login == "" {
+		return &profilesv1.GetUserInfoResponse{Code: codeBadRequest, Message: "login required"}, nil
+	}
+
+	profile, err := s.store.GetProfileByLogin(ctx, login)
+	if errors.Is(err, pg.ErrNotFound) {
+		return &profilesv1.GetUserInfoResponse{Code: codeNotFound, Message: "user not found"}, nil
+	}
+	if err != nil {
+		return &profilesv1.GetUserInfoResponse{Code: codeInternal, Message: "internal error"}, nil
+	}
+
+	status, err := s.friendStatus(ctx, caller, profile.UserID)
+	if err != nil {
+		return &profilesv1.GetUserInfoResponse{Code: codeInternal, Message: "internal error"}, nil
+	}
+	// Discovery never exposes PII — even for a friend. Frontend uses the full
+	// GetUserInfo path (friends panel) when it needs email/phone.
+	return reducedUserInfo(profile, status), nil
 }
 
 // EditUser updates the acting user's own profile. No user_id in the body; login
@@ -435,6 +461,25 @@ func (s *Server) refreshFriendCaches(ctx context.Context, users ...string) error
 		}
 	}
 	return nil
+}
+
+// reducedUserInfo builds the no-PII UserInfo shape: user_id, login, name,
+// surname, pets, friend_status — but never email/phone/current_object_id, and
+// has_pii=false. GetUserInfo layers PII on top of this for self/friends;
+// FindUserByLogin returns it verbatim. on_walk/current_object_id stay at their
+// zero values because Map, not Profiles, owns presence.
+func reducedUserInfo(p *pg.Profile, status profilesv1.FriendStatus) *profilesv1.GetUserInfoResponse {
+	return &profilesv1.GetUserInfoResponse{
+		Code:         codeOK,
+		UserId:       p.UserID,
+		Login:        p.Login,
+		Name:         p.Name,
+		Surname:      p.Surname,
+		Pets:         toProtoPets(p.Pets),
+		OnWalk:       false,
+		FriendStatus: status,
+		HasPii:       false,
+	}
 }
 
 func toProtoPets(pets []pg.Pet) []*profilesv1.Pet {
