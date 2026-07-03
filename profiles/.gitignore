@@ -1,0 +1,7 @@
+# Third-party protos fetched by `make vendor-proto` (regenerable, not source).
+/vendor-proto/
+
+# Build artifacts
+/bin/
+*.test
+*.out
