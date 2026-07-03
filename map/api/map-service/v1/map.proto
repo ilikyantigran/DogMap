@@ -1,0 +1,97 @@
+syntax = "proto3";
+
+package map.v1;
+
+import "validate/validate.proto";
+import "google/api/annotations.proto";
+
+option go_package = "map-service/pkg/api/map-service/v1;mapv1";
+
+// MapService owns dog-relevant map objects (parks, dog-parks, dog beaches) and
+// their ephemeral presence. It applies the DogMap privacy model: visitor_count
+// for everyone, friend_ids_here computed for the calling user only. The raw
+// visitor id list is NEVER returned to a client.
+//
+// The acting user id is derived from the opaque session token (header
+// `auth_token`), never from the request body. Body ids are only *target* ids.
+service MapService {
+  // LoadMap returns every map object within 5km of the caller's point
+  // (ST_DWithin(location, point, 5000)), each with visitor_count and the
+  // caller's friend_ids_here.
+  rpc LoadMap(LoadMapRequest) returns (LoadMapResponse) {
+    option (google.api.http) = {
+      post: "/v1/map/load"
+      body: "*"
+    };
+  }
+
+  // GetMapObject returns a single object with its presence view for the caller.
+  rpc GetMapObject(GetMapObjectRequest) returns (MapObjectResponse) {
+    option (google.api.http) = {
+      post: "/v1/map/object"
+      body: "*"
+    };
+  }
+
+  // ChangeMapObjectStatus marks the caller VISITING or NOT_VISITING the target
+  // object and returns the updated object view. No user_id in the body — the
+  // acting user is the token owner.
+  rpc ChangeMapObjectStatus(ChangeMapObjectStatusRequest) returns (MapObjectResponse) {
+    option (google.api.http) = {
+      post: "/v1/map/status"
+      body: "*"
+    };
+  }
+}
+
+enum ObjectType {
+  OBJECT_TYPE_UNSPECIFIED = 0;
+  PARK = 1;
+  DOG_PARK = 2;
+  DOG_BEACH = 3;
+}
+
+enum PresenceAction {
+  PRESENCE_ACTION_UNSPECIFIED = 0;
+  VISITING = 1;
+  NOT_VISITING = 2;
+}
+
+// MapObject is the client-facing shape. It carries the privacy-filtered presence
+// view: a count for everyone and the caller's friends who are here by name (id).
+message MapObject {
+  string id = 1;
+  ObjectType object_type = 2;
+  double longitude = 3;
+  double latitude = 4;
+  uint32 visitor_count = 5;
+  // friend_ids_here = SINTER(object:{id}:visitors, friends:{caller}).
+  // Only the caller's friends appear; never the raw visitor set.
+  repeated string friend_ids_here = 6;
+}
+
+message LoadMapRequest {
+  double longitude = 1 [(validate.rules).double = {gte: -180.0, lte: 180.0}];
+  double latitude = 2 [(validate.rules).double = {gte: -90.0, lte: 90.0}];
+}
+
+message LoadMapResponse {
+  int32 code = 1;
+  string message = 2;
+  repeated MapObject objects = 3;
+}
+
+message GetMapObjectRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+
+message ChangeMapObjectStatusRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+  PresenceAction action = 2 [(validate.rules).enum = {defined_only: true, not_in: [0]}];
+}
+
+message MapObjectResponse {
+  int32 code = 1;
+  string message = 2;
+  MapObject object = 3;
+}

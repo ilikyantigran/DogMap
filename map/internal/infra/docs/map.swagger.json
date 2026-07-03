@@ -1,0 +1,265 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "map-service/v1/map.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "MapService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/map/load": {
+      "post": {
+        "summary": "LoadMap returns every map object within 5km of the caller's point\n(ST_DWithin(location, point, 5000)), each with visitor_count and the\ncaller's friend_ids_here.",
+        "operationId": "MapService_LoadMap",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1LoadMapResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1LoadMapRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MapService"
+        ]
+      }
+    },
+    "/v1/map/object": {
+      "post": {
+        "summary": "GetMapObject returns a single object with its presence view for the caller.",
+        "operationId": "MapService_GetMapObject",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1MapObjectResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1GetMapObjectRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MapService"
+        ]
+      }
+    },
+    "/v1/map/status": {
+      "post": {
+        "summary": "ChangeMapObjectStatus marks the caller VISITING or NOT_VISITING the target\nobject and returns the updated object view. No user_id in the body — the\nacting user is the token owner.",
+        "operationId": "MapService_ChangeMapObjectStatus",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1MapObjectResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1ChangeMapObjectStatusRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MapService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1ChangeMapObjectStatusRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "action": {
+          "$ref": "#/definitions/v1PresenceAction"
+        }
+      }
+    },
+    "v1GetMapObjectRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        }
+      }
+    },
+    "v1LoadMapRequest": {
+      "type": "object",
+      "properties": {
+        "longitude": {
+          "type": "number",
+          "format": "double"
+        },
+        "latitude": {
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    "v1LoadMapResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "objects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1MapObject"
+          }
+        }
+      }
+    },
+    "v1MapObject": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "objectType": {
+          "$ref": "#/definitions/v1ObjectType"
+        },
+        "longitude": {
+          "type": "number",
+          "format": "double"
+        },
+        "latitude": {
+          "type": "number",
+          "format": "double"
+        },
+        "visitorCount": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "friendIdsHere": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "friend_ids_here = SINTER(object:{id}:visitors, friends:{caller}).\nOnly the caller's friends appear; never the raw visitor set."
+        }
+      },
+      "description": "MapObject is the client-facing shape. It carries the privacy-filtered presence\nview: a count for everyone and the caller's friends who are here by name (id)."
+    },
+    "v1MapObjectResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "object": {
+          "$ref": "#/definitions/v1MapObject"
+        }
+      }
+    },
+    "v1ObjectType": {
+      "type": "string",
+      "enum": [
+        "OBJECT_TYPE_UNSPECIFIED",
+        "PARK",
+        "DOG_PARK",
+        "DOG_BEACH"
+      ],
+      "default": "OBJECT_TYPE_UNSPECIFIED"
+    },
+    "v1PresenceAction": {
+      "type": "string",
+      "enum": [
+        "PRESENCE_ACTION_UNSPECIFIED",
+        "VISITING",
+        "NOT_VISITING"
+      ],
+      "default": "PRESENCE_ACTION_UNSPECIFIED"
+    }
+  }
+}
