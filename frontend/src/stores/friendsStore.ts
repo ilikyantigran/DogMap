@@ -25,8 +25,9 @@ interface FriendsState {
   lookupResult: UserInfo | null
 }
 
-// Poller is module-scoped (not reactive state) so Pinia doesn't try to proxy it.
-let poller: Poller | null = null
+// Poller lives outside reactive state (so Pinia doesn't proxy it) and is keyed by
+// store instance so a fresh Pinia in tests never reuses a stale poller closure.
+const pollerByStore = new WeakMap<object, Poller>()
 
 export const useFriendsStore = defineStore('friends', {
   state: (): FriendsState => ({
@@ -52,13 +53,17 @@ export const useFriendsStore = defineStore('friends', {
 
     /** Start polling the friend graph while the Profile page is active. */
     startPolling(): void {
-      if (!poller) poller = createPoller(() => this.refresh(), FRIENDS_REFRESH_MS)
+      let poller = pollerByStore.get(this)
+      if (!poller) {
+        poller = createPoller(() => this.refresh(), FRIENDS_REFRESH_MS)
+        pollerByStore.set(this, poller)
+      }
       poller.start(true)
     },
 
     /** Stop polling (page unmount / tab hidden). */
     stopPolling(): void {
-      poller?.stop()
+      pollerByStore.get(this)?.stop()
     },
 
     /** Find a user by login -> reduced profile the caller can request. */

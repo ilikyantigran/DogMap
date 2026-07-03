@@ -33,9 +33,23 @@ interface MapState {
   loading: boolean
 }
 
-// Timers held outside reactive state so Pinia doesn't proxy them.
-let refreshPoller: Poller | null = null
-let heartbeatPoller: Poller | null = null
+// Timers held outside reactive state so Pinia doesn't proxy them. Keyed by store
+// instance (via a WeakMap) so multiple stores / fresh Pinia instances in tests
+// never share a poller closure bound to a stale `this`.
+interface MapTimers {
+  refresh: Poller | null
+  heartbeat: Poller | null
+}
+const timersByStore = new WeakMap<object, MapTimers>()
+
+function timersFor(store: object): MapTimers {
+  let t = timersByStore.get(store)
+  if (!t) {
+    t = { refresh: null, heartbeat: null }
+    timersByStore.set(store, t)
+  }
+  return t
+}
 
 // Unwrap a single-object response that may be either the bare object or wrapped
 // in `{ object: ... }` (the backend doc doesn't pin the key — be tolerant).
@@ -122,8 +136,9 @@ export const useMapStore = defineStore('map', {
      * Docs/03-Frontend.md). Swappable for WS/SSE later without touching views.
      */
     startHeartbeat(): void {
-      if (!heartbeatPoller) {
-        heartbeatPoller = createPoller(async () => {
+      const timers = timersFor(this)
+      if (!timers.heartbeat) {
+        timers.heartbeat = createPoller(async () => {
           const id = this.myPresenceObjectId
           if (!id) {
             this.stopHeartbeat()
@@ -136,19 +151,20 @@ export const useMapStore = defineStore('map', {
           this.upsertObject(extractObject(res))
         }, PRESENCE_HEARTBEAT_MS)
       }
-      heartbeatPoller.start(false)
+      timers.heartbeat.start(false)
     },
 
     stopHeartbeat(): void {
-      heartbeatPoller?.stop()
+      timersFor(this).heartbeat?.stop()
     },
 
     /** Start map refresh polling while the Map page is active. */
     startPolling(): void {
-      if (!refreshPoller) {
-        refreshPoller = createPoller(() => this.refresh(), MAP_REFRESH_MS)
+      const timers = timersFor(this)
+      if (!timers.refresh) {
+        timers.refresh = createPoller(() => this.refresh(), MAP_REFRESH_MS)
       }
-      refreshPoller.start(true)
+      timers.refresh.start(true)
       // If we were already visiting (e.g. navigated back to Map), resume beats.
       if (this.myPresenceObjectId) this.startHeartbeat()
     },
@@ -159,8 +175,9 @@ export const useMapStore = defineStore('map', {
      * own, and the user may just be switching tabs briefly.
      */
     stopPolling(): void {
-      refreshPoller?.stop()
-      heartbeatPoller?.stop()
+      const timers = timersFor(this)
+      timers.refresh?.stop()
+      timers.heartbeat?.stop()
     },
   },
 })
