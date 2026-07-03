@@ -42,7 +42,7 @@ describe('friendsStore', () => {
 
     await friends.refresh()
 
-    expect(post).toHaveBeenCalledWith('/profiles/ListFriends')
+    expect(post).toHaveBeenCalledWith('/v1/friends/list')
     expect(friends.friends[0].login).toBe('Test1')
     expect(friends.friends[0].on_walk).toBe(true)
     expect(friends.incoming[0].from_login).toBe('Test2')
@@ -63,7 +63,7 @@ describe('friendsStore', () => {
 
     const result = await friends.findByLogin('Test1')
 
-    expect(post).toHaveBeenCalledWith('/profiles/FindUserByLogin', {
+    expect(post).toHaveBeenCalledWith('/v1/profiles/find-by-login', {
       login: 'Test1',
     })
     expect(result?.login).toBe('Test1')
@@ -80,10 +80,10 @@ describe('friendsStore', () => {
 
     await friends.sendRequest('u1')
 
-    expect(post).toHaveBeenNthCalledWith(1, '/profiles/SendFriendRequest', {
+    expect(post).toHaveBeenNthCalledWith(1, '/v1/friends/request', {
       user_id_target: 'u1',
     })
-    expect(post).toHaveBeenNthCalledWith(2, '/profiles/ListFriends')
+    expect(post).toHaveBeenNthCalledWith(2, '/v1/friends/list')
   })
 
   it('respondToRequest accepts (resolution true) then refreshes', async () => {
@@ -94,7 +94,7 @@ describe('friendsStore', () => {
 
     await friends.respondToRequest('r1', true)
 
-    expect(post).toHaveBeenNthCalledWith(1, '/profiles/SendFriendResponse', {
+    expect(post).toHaveBeenNthCalledWith(1, '/v1/friends/respond', {
       friend_request_id: 'r1',
       resolution: true,
     })
@@ -108,7 +108,7 @@ describe('friendsStore', () => {
 
     await friends.block('u2')
 
-    expect(post).toHaveBeenNthCalledWith(1, '/profiles/BlockUser', {
+    expect(post).toHaveBeenNthCalledWith(1, '/v1/friends/block', {
       user_id_target: 'u2',
     })
   })

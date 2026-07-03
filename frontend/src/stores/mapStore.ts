@@ -89,7 +89,7 @@ export const useMapStore = defineStore('map', {
           latitude: this.center.latitude,
           longitude: this.center.longitude,
         }
-        const res = await api.post<LoadMapResponse>('/map/LoadMap', req)
+        const res = await api.post<LoadMapResponse>('/v1/map/load', req)
         this.objects = res.objects ?? []
       } finally {
         this.loading = false
@@ -114,7 +114,7 @@ export const useMapStore = defineStore('map', {
         action: visiting ? 'VISITING' : 'NOT_VISITING',
       }
       const res = await api.post<MapObjectResponse>(
-        '/map/ChangeMapObjectStatus',
+        '/v1/map/status',
         req,
       )
       this.upsertObject(extractObject(res))
@@ -145,7 +145,7 @@ export const useMapStore = defineStore('map', {
             return
           }
           const res = await api.post<MapObjectResponse>(
-            '/map/ChangeMapObjectStatus',
+            '/v1/map/status',
             { id, action: 'VISITING' } satisfies ChangeMapObjectStatusRequest,
           )
           this.upsertObject(extractObject(res))

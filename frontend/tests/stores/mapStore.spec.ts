@@ -44,7 +44,7 @@ describe('mapStore', () => {
 
     await map.refresh()
 
-    expect(post).toHaveBeenCalledWith('/map/LoadMap', {
+    expect(post).toHaveBeenCalledWith('/v1/map/load', {
       latitude: 51.5,
       longitude: -0.1,
     })
@@ -64,7 +64,7 @@ describe('mapStore', () => {
 
     await map.setVisiting('park-1', true)
 
-    expect(post).toHaveBeenCalledWith('/map/ChangeMapObjectStatus', {
+    expect(post).toHaveBeenCalledWith('/v1/map/status', {
       id: 'park-1',
       action: 'VISITING',
     })
@@ -85,7 +85,7 @@ describe('mapStore', () => {
 
     await map.setVisiting('park-1', false)
 
-    expect(post).toHaveBeenCalledWith('/map/ChangeMapObjectStatus', {
+    expect(post).toHaveBeenCalledWith('/v1/map/status', {
       id: 'park-1',
       action: 'NOT_VISITING',
     })
@@ -105,7 +105,7 @@ describe('mapStore', () => {
     post.mockResolvedValue({ code: 0, message: 'ok', object: obj({ visitor_count: 1 }) })
     await vi.advanceTimersByTimeAsync(PRESENCE_HEARTBEAT_MS + 5)
 
-    expect(post).toHaveBeenCalledWith('/map/ChangeMapObjectStatus', {
+    expect(post).toHaveBeenCalledWith('/v1/map/status', {
       id: 'park-1',
       action: 'VISITING',
     })

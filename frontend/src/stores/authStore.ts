@@ -34,15 +34,15 @@ export const useAuthStore = defineStore('auth', {
   },
   actions: {
     async login(payload: LoginRequest): Promise<void> {
-      const res = await api.post<LoginResponse>('/auth/login', payload)
+      const res = await api.post<LoginResponse>('/v1/auth/login', payload)
       this.token = res.token
       this.userId = res.user_id
     },
 
     async register(payload: RegisterRequest): Promise<void> {
       // Register, then auto-login with the same credentials
-      // (Docs/03-Frontend.md: RegisterForm "-> POST /auth/register, then auto-login").
-      await api.post<RegisterResponse>('/auth/register', payload)
+      // (Docs/03-Frontend.md: RegisterForm "-> POST /v1/auth/register, then auto-login").
+      await api.post<RegisterResponse>('/v1/auth/register', payload)
       await this.login({
         login: payload.login,
         email: payload.email,
@@ -53,7 +53,7 @@ export const useAuthStore = defineStore('auth', {
     async logout(): Promise<void> {
       try {
         // Best-effort server-side revocation (deletes session:{token} in Valkey).
-        await api.post('/auth/logout')
+        await api.post('/v1/auth/logout')
       } finally {
         this.clearSession()
       }

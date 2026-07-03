@@ -8,7 +8,10 @@ import { createApiClient, type ApiClient } from './apiClient'
 let getTokenFn: () => string | null = () => null
 let onUnauthorizedFn: () => void = () => {}
 
-export const apiBaseUrl: string = import.meta.env.VITE_API_BASE_URL ?? '/api'
+// Empty base by default: stores call absolute gateway paths ('/v1/...') and the
+// Vite dev proxy (see vite.config.ts) routes each service prefix to its port.
+// Override with VITE_API_BASE_URL when a single aggregating gateway exists.
+export const apiBaseUrl: string = import.meta.env.VITE_API_BASE_URL ?? ''
 
 export const api: ApiClient = createApiClient({
   baseUrl: apiBaseUrl,

@@ -13,14 +13,15 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-    // Point this at the REST edge/gateway of the Go backend during dev.
-    // The backend contract is documented in Docs/02-Backend.md.
+    // No single aggregating gateway yet: each service exposes its own HTTP edge
+    // on a distinct port (Docs/02-Backend.md). Route each /v1 prefix to the right
+    // service's http_port. Paths are served as-is (no rewrite).
+    //   auth      -> :8081   profiles+friends -> :8083   map -> :8085
     proxy: {
-      '/api': {
-        target: 'http://localhost:8080',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
-      },
+      '/v1/auth': { target: 'http://localhost:8081', changeOrigin: true },
+      '/v1/profiles': { target: 'http://localhost:8083', changeOrigin: true },
+      '/v1/friends': { target: 'http://localhost:8083', changeOrigin: true },
+      '/v1/map': { target: 'http://localhost:8085', changeOrigin: true },
     },
   },
   test: {

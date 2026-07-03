@@ -42,7 +42,7 @@ export const useFriendsStore = defineStore('friends', {
     async refresh(): Promise<void> {
       this.loading = true
       try {
-        const res = await api.post<ListFriendsResponse>('/profiles/ListFriends')
+        const res = await api.post<ListFriendsResponse>('/v1/friends/list')
         this.friends = res.friends ?? []
         this.incoming = res.incoming_requests ?? []
         this.outgoing = res.outgoing_requests ?? []
@@ -68,7 +68,7 @@ export const useFriendsStore = defineStore('friends', {
 
     /** Find a user by login -> reduced profile the caller can request. */
     async findByLogin(login: string): Promise<UserInfo | null> {
-      const res = await api.post<UserInfo | null>('/profiles/FindUserByLogin', {
+      const res = await api.post<UserInfo | null>('/v1/profiles/find-by-login', {
         login,
       })
       this.lookupResult = res ?? null
@@ -80,7 +80,7 @@ export const useFriendsStore = defineStore('friends', {
     },
 
     async sendRequest(userIdTarget: string): Promise<void> {
-      await api.post<SendFriendRequestResponse>('/profiles/SendFriendRequest', {
+      await api.post<SendFriendRequestResponse>('/v1/friends/request', {
         user_id_target: userIdTarget,
       })
       await this.refresh()
@@ -91,7 +91,7 @@ export const useFriendsStore = defineStore('friends', {
       friendRequestId: string,
       resolution: boolean,
     ): Promise<void> {
-      await api.post('/profiles/SendFriendResponse', {
+      await api.post('/v1/friends/respond', {
         friend_request_id: friendRequestId,
         resolution,
       })
@@ -99,17 +99,17 @@ export const useFriendsStore = defineStore('friends', {
     },
 
     async removeFriend(userIdTarget: string): Promise<void> {
-      await api.post('/profiles/RemoveFriend', { user_id_target: userIdTarget })
+      await api.post('/v1/friends/remove', { user_id_target: userIdTarget })
       await this.refresh()
     },
 
     async block(userIdTarget: string): Promise<void> {
-      await api.post('/profiles/BlockUser', { user_id_target: userIdTarget })
+      await api.post('/v1/friends/block', { user_id_target: userIdTarget })
       await this.refresh()
     },
 
     async unblock(userIdTarget: string): Promise<void> {
-      await api.post('/profiles/UnblockUser', { user_id_target: userIdTarget })
+      await api.post('/v1/friends/unblock', { user_id_target: userIdTarget })
       await this.refresh()
     },
   },

@@ -31,7 +31,7 @@ describe('authStore', () => {
 
     await auth.login({ email: 'a@b.com', password: 'pw' })
 
-    expect(post).toHaveBeenCalledWith('/auth/login', {
+    expect(post).toHaveBeenCalledWith('/v1/auth/login', {
       email: 'a@b.com',
       password: 'pw',
     })
@@ -49,7 +49,7 @@ describe('authStore', () => {
     await auth.register({ login: 'Test1', email: 'a@b.com', password: 'pw' })
 
     // Registered, then logged in automatically.
-    expect(post).toHaveBeenNthCalledWith(1, '/auth/register', {
+    expect(post).toHaveBeenNthCalledWith(1, '/v1/auth/register', {
       login: 'Test1',
       email: 'a@b.com',
       password: 'pw',
@@ -66,7 +66,7 @@ describe('authStore', () => {
     post.mockResolvedValue({ code: 0, message: 'ok' })
     await auth.logout()
 
-    expect(post).toHaveBeenLastCalledWith('/auth/logout')
+    expect(post).toHaveBeenLastCalledWith('/v1/auth/logout')
     expect(auth.token).toBeNull()
     expect(auth.userId).toBeNull()
     expect(auth.isAuthenticated).toBe(false)

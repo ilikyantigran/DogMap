@@ -12,7 +12,7 @@ valkey:
   address: valkey:6379
 
 downstreams:
-  profiles: profiles:8090   # Profiles gRPC (CreateProfile handoff)
+  profiles: profiles:8082   # Profiles gRPC (CreateProfile handoff)
 
 auth:
   session_ttl_seconds: 86400

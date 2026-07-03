@@ -36,7 +36,7 @@ export const useProfileStore = defineStore('profile', {
       this.loading = true
       try {
         const req: GetUserInfoRequest = { user_id_target: auth.userId }
-        this.profile = await api.post<UserInfo>('/profiles/GetUserInfo', req)
+        this.profile = await api.post<UserInfo>('/v1/profiles/get', req)
       } finally {
         this.loading = false
       }
@@ -45,14 +45,14 @@ export const useProfileStore = defineStore('profile', {
     /** Fetch another user's info (full if friend/self, reduced otherwise). */
     async getUserInfo(userIdTarget: string): Promise<UserInfo> {
       const req: GetUserInfoRequest = { user_id_target: userIdTarget }
-      return api.post<UserInfo>('/profiles/GetUserInfo', req)
+      return api.post<UserInfo>('/v1/profiles/get', req)
     },
 
     /** Explicit save (per product spec). Returns the updated full profile. */
     async save(edit: EditUserRequest): Promise<void> {
       this.saving = true
       try {
-        this.profile = await api.post<UserInfo>('/profiles/EditUser', edit)
+        this.profile = await api.post<UserInfo>('/v1/profiles/edit', edit)
       } finally {
         this.saving = false
       }
