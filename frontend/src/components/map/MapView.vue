@@ -35,13 +35,15 @@ function makeCircle(obj: MapObject): L.CircleMarker {
   })
 }
 
-function mountPopup(obj: MapObject): HTMLElement {
+function mountPopup(id: string): HTMLElement {
   const container = document.createElement('div')
   // Reuse the app-wide Pinia so the popup component talks to the same stores.
-  const app = createApp(MapObjectPopup, { object: obj })
+  // Pass only the id: the popup reads the (live) object from the store itself so
+  // it stays reactive when the store replaces objects on refresh.
+  const app = createApp(MapObjectPopup, { id })
   app.use(getActivePinia() ?? createPinia())
   app.mount(container)
-  popupApps.set(obj.id, app)
+  popupApps.set(id, app)
   return container
 }
 
@@ -64,7 +66,7 @@ function renderMarkers() {
       marker = makeCircle(obj)
       marker.on('click', () => map.select(obj.id))
       marker.on('popupclose', () => unmountPopup(obj.id))
-      marker.bindPopup(() => mountPopup(obj))
+      marker.bindPopup(() => mountPopup(obj.id))
       marker.addTo(leaflet)
       markers.set(obj.id, marker)
     } else {

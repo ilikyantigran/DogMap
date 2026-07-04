@@ -5,48 +5,50 @@ import { useMapStore } from '@/stores/mapStore'
 import { useFriendsStore } from '@/stores/friendsStore'
 import { OBJECT_TYPE_META } from '@/lib/mapObjects'
 import { toastError } from '@/lib/handleError'
-import type { MapObject } from '@/types/api'
 
-// MapObjectPopup: type, visitor_count, friends-here (from friend_ids_here),
-// and the "I'm going here" / "Not going" toggle -> mapStore.setVisiting.
-// Privacy: strangers only ever contribute to the count; only friend ids are
-// exposed for the caller, and we map those ids to logins we already know.
-const props = defineProps<{ object: MapObject }>()
+// MapObjectPopup reads its object from the store BY ID so it stays reactive while
+// the Leaflet popup is open. The store REPLACES object references on refresh
+// (this.objects = ...), so a captured `object` prop snapshot would go stale and
+// only update on a full page reload. Looking it up by id keeps it live.
+const props = defineProps<{ id: string }>()
 
 const map = useMapStore()
 const friends = useFriendsStore()
 const { friends: friendList } = storeToRefs(friends)
 
-const meta = computed(() => OBJECT_TYPE_META[props.object.object_type])
+const object = computed(() => map.objects.find((o) => o.id === props.id) ?? null)
+const meta = computed(() =>
+  object.value ? OBJECT_TYPE_META[object.value.object_type] : null,
+)
 
 // Authoritative per-object flag from the backend — correct even right after a
 // page refresh, so the user can't re-mark an object they're already at.
-const amHere = computed(() => props.object.viewer_visiting)
-
-// Refresh this object's live counter whenever its popup opens or switches to a
-// different object (Map-2: reflect the count on click, not only on the poll tick).
-onMounted(() => {
-  void map.refreshObject(props.object.id).catch(() => {})
-})
-watch(
-  () => props.object.id,
-  (id) => void map.refreshObject(id).catch(() => {}),
-)
+const amHere = computed(() => object.value?.viewer_visiting ?? false)
 
 // Resolve friend ids present here to friendly logins where we know them.
 const friendsHere = computed(() =>
-  (props.object.friend_ids_here ?? []).map((id) => {
+  (object.value?.friend_ids_here ?? []).map((id) => {
     const f = friendList.value.find((fr) => fr.user_id === id)
     return f?.login ?? id
   }),
 )
 
+// Refresh this object's live counter whenever its popup opens or switches object
+// (Map-2: reflect the count on click, not only on the poll tick).
+onMounted(() => {
+  void map.refreshObject(props.id).catch(() => {})
+})
+watch(
+  () => props.id,
+  (id) => void map.refreshObject(id).catch(() => {}),
+)
+
 const busy = ref(false)
 async function toggle() {
-  if (busy.value) return
+  if (busy.value || !object.value) return
   busy.value = true
   try {
-    await map.setVisiting(props.object.id, !amHere.value)
+    await map.setVisiting(props.id, !amHere.value)
   } catch (err) {
     toastError(err)
   } finally {
@@ -56,7 +58,7 @@ async function toggle() {
 </script>
 
 <template>
-  <div class="map-popup">
+  <div v-if="object && meta" class="map-popup">
     <strong>{{ meta.label }}</strong>
 
     <!-- visitor_count for everyone; empty state per spec ("0 people here"). -->
