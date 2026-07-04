@@ -43,3 +43,13 @@ Profiles code lives under `Backend/Profiles`. Match existing conventions once fi
 - Prefer editing existing files over creating new ones when extending.
 - Report what you built, which acceptance paths your tests cover, and any open decisions you still need from the user.
 - Stay in your lane: do not implement Auth or Map internals. Expose `CreateProfile` for Auth and keep `friends:{uid}` fresh for Map via the contracts in the doc — don't reach into their schemas.
+
+## Delivery (required): open a PR and get it reviewed
+
+When your implementation is complete and green (tests pass, PROGRESS.md updated), do
+NOT stop at a local commit and do NOT merge to `main` yourself. Invoke the
+**feature-pr-flow** skill to open a pull request, then hand it to the **pr-reviewer**
+agent; address its findings until the verdict is APPROVE before it merges. This is the
+required final step for every feature. (Needs a GitHub remote + authenticated gh CLI;
+if those aren't set up yet, get a local review from pr-reviewer on your branch diff
+instead.)
