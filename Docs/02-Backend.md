@@ -219,13 +219,17 @@ Response — objects within **5km** (`ST_DWithin(location, point, 5000)`):
       "object_type": "PARK|DOG_PARK|DOG_BEACH",
       "longitude": 0.0, "latitude": 0.0,
       "visitor_count": 3,
-      "friend_ids_here": ["uuid"]
+      "friend_ids_here": ["uuid"],
+      "viewer_visiting": false
     }
   ]
 }
 ```
 - `visitor_count` for everyone; `friend_ids_here` computed for the caller
   (`SINTER` visitors ∩ `friends:{caller}`). **Never** return the raw visitor list.
+- `viewer_visiting` is true when the **caller** currently holds presence in this
+  object (from `presence:{caller}`). Lets the client show the right toggle state
+  and avoid re-marking after a page refresh.
 
 ### GetMapObject
 Request: header `auth_token`. `{ "id": "uuid" }`

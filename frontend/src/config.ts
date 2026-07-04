@@ -5,8 +5,9 @@
 // so presence never expires mid-walk. Docs specify every 2-3 min; we use 2 min.
 export const PRESENCE_HEARTBEAT_MS = 2 * 60 * 1000
 
-// Map refresh cadence to update visitor_count / friends_here (docs: 20-30s).
-export const MAP_REFRESH_MS = 25 * 1000
+// Map refresh cadence to update visitor_count / friends_here. Kept fairly tight
+// so counts stay fresh; also refreshed on demand (object click + visiting toggle).
+export const MAP_REFRESH_MS = 12 * 1000
 
 // Profile/friends refresh for request + on-walk status updates.
 export const FRIENDS_REFRESH_MS = 30 * 1000

@@ -131,7 +131,7 @@ func (s *Server) GetUserInfo(ctx context.Context, req *profilesv1.GetUserInfoReq
 	// Full shape is returned to self or friends only. PII (email/phone) and
 	// current_object_id are stripped for everyone else.
 	resp := reducedUserInfo(profile, status)
-	if caller == target || status == profilesv1.FriendStatus_FRIEND_STATUS_FRIENDS {
+	if caller == target || status == profilesv1.FriendStatus_FRIENDS {
 		resp.HasPii = true
 		resp.Email = profile.Email
 		resp.Phone = profile.Phone
@@ -216,7 +216,7 @@ func (s *Server) EditUser(ctx context.Context, req *profilesv1.EditUserRequest) 
 		Email:        profile.Email,
 		Phone:        profile.Phone,
 		Pets:         toProtoPets(profile.Pets),
-		FriendStatus: profilesv1.FriendStatus_FRIEND_STATUS_NONE,
+		FriendStatus: profilesv1.FriendStatus_NONE,
 		HasPii:       true,
 	}, nil
 }
@@ -425,27 +425,27 @@ func (s *Server) CreateProfile(ctx context.Context, req *profilesv1.CreateProfil
 // friendStatus computes the caller's relationship to target (block dominates).
 func (s *Server) friendStatus(ctx context.Context, caller, target string) (profilesv1.FriendStatus, error) {
 	if caller == target {
-		return profilesv1.FriendStatus_FRIEND_STATUS_NONE, nil
+		return profilesv1.FriendStatus_NONE, nil
 	}
 	if blocked, err := s.store.IsBlockedEitherWay(ctx, caller, target); err != nil {
 		return 0, err
 	} else if blocked {
-		return profilesv1.FriendStatus_FRIEND_STATUS_BLOCKED, nil
+		return profilesv1.FriendStatus_BLOCKED, nil
 	}
 	if friends, err := s.store.AreFriends(ctx, caller, target); err != nil {
 		return 0, err
 	} else if friends {
-		return profilesv1.FriendStatus_FRIEND_STATUS_FRIENDS, nil
+		return profilesv1.FriendStatus_FRIENDS, nil
 	}
 	if fr, err := s.store.PendingBetween(ctx, caller, target); err == nil {
 		if fr.FromUserID == caller {
-			return profilesv1.FriendStatus_FRIEND_STATUS_PENDING_OUT, nil
+			return profilesv1.FriendStatus_PENDING_OUT, nil
 		}
-		return profilesv1.FriendStatus_FRIEND_STATUS_PENDING_IN, nil
+		return profilesv1.FriendStatus_PENDING_IN, nil
 	} else if !errors.Is(err, pg.ErrNotFound) {
 		return 0, err
 	}
-	return profilesv1.FriendStatus_FRIEND_STATUS_NONE, nil
+	return profilesv1.FriendStatus_NONE, nil
 }
 
 // refreshFriendCaches rebuilds friends:{uid} for each user from Postgres — the

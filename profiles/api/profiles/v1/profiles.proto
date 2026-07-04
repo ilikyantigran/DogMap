@@ -98,11 +98,11 @@ service ProfilesService {
 
 // FriendStatus is computed for the calling user relative to a target.
 enum FriendStatus {
-  FRIEND_STATUS_NONE = 0;
-  FRIEND_STATUS_PENDING_OUT = 1; // caller sent a request that is still pending
-  FRIEND_STATUS_PENDING_IN = 2;  // target sent the caller a pending request
-  FRIEND_STATUS_FRIENDS = 3;
-  FRIEND_STATUS_BLOCKED = 4;     // caller blocked target, or target blocked caller
+  NONE = 0;
+  PENDING_OUT = 1; // caller sent a request that is still pending
+  PENDING_IN = 2;  // target sent the caller a pending request
+  FRIENDS = 3;
+  BLOCKED = 4;     // caller blocked target, or target blocked caller
 }
 
 message Pet {

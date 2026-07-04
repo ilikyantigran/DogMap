@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useMapStore } from '@/stores/mapStore'
 import { useFriendsStore } from '@/stores/friendsStore'
@@ -19,7 +19,19 @@ const { friends: friendList } = storeToRefs(friends)
 
 const meta = computed(() => OBJECT_TYPE_META[props.object.object_type])
 
-const amHere = computed(() => map.myPresenceObjectId === props.object.id)
+// Authoritative per-object flag from the backend — correct even right after a
+// page refresh, so the user can't re-mark an object they're already at.
+const amHere = computed(() => props.object.viewer_visiting)
+
+// Refresh this object's live counter whenever its popup opens or switches to a
+// different object (Map-2: reflect the count on click, not only on the poll tick).
+onMounted(() => {
+  void map.refreshObject(props.object.id).catch(() => {})
+})
+watch(
+  () => props.object.id,
+  (id) => void map.refreshObject(id).catch(() => {}),
+)
 
 // Resolve friend ids present here to friendly logins where we know them.
 const friendsHere = computed(() =>

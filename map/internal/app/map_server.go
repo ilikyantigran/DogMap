@@ -33,6 +33,9 @@ type PresenceStore interface {
 	MarkNotVisiting(ctx context.Context, user, object string) error
 	VisitorCount(ctx context.Context, object string) (int, error)
 	FriendIDsHere(ctx context.Context, object, caller string) ([]string, error)
+	// CurrentObject returns the object the caller currently holds presence in, or
+	// "" if none — used to set viewer_visiting on the returned objects.
+	CurrentObject(ctx context.Context, user string) (string, error)
 }
 
 // TokenResolver maps an opaque session token to the acting user id. Auth owns
@@ -96,7 +99,7 @@ func (s *Server) callerID(ctx context.Context) (string, error) {
 // view builds the privacy-filtered client shape for one object: visitor_count for
 // everyone, friend_ids_here computed for the caller. The raw visitor set never
 // leaves this function.
-func (s *Server) view(ctx context.Context, o postgres.Object, caller string) (*mapv1.MapObject, error) {
+func (s *Server) view(ctx context.Context, o postgres.Object, caller, callerObject string) (*mapv1.MapObject, error) {
 	count, err := s.presence.VisitorCount(ctx, o.ID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "failed to read presence")
@@ -106,12 +109,13 @@ func (s *Server) view(ctx context.Context, o postgres.Object, caller string) (*m
 		return nil, status.Error(codes.Internal, "failed to read presence")
 	}
 	return &mapv1.MapObject{
-		Id:            o.ID,
-		ObjectType:    objectTypeToProto(o.ObjectType),
-		Longitude:     o.Longitude,
-		Latitude:      o.Latitude,
-		VisitorCount:  uint32(count),
-		FriendIdsHere: friends,
+		Id:             o.ID,
+		ObjectType:     objectTypeToProto(o.ObjectType),
+		Longitude:      o.Longitude,
+		Latitude:       o.Latitude,
+		VisitorCount:   uint32(count),
+		FriendIdsHere:  friends,
+		ViewerVisiting: o.ID == callerObject && callerObject != "",
 	}, nil
 }
 
@@ -132,9 +136,12 @@ func (s *Server) LoadMap(ctx context.Context, req *mapv1.LoadMapRequest) (*mapv1
 		return nil, status.Error(codes.Internal, "failed to load map objects")
 	}
 
+	// One lookup of the caller's own presence covers every object's viewer_visiting.
+	callerObject, _ := s.presence.CurrentObject(ctx, caller)
+
 	out := make([]*mapv1.MapObject, 0, len(objs))
 	for _, o := range objs {
-		v, err := s.view(ctx, o, caller)
+		v, err := s.view(ctx, o, caller, callerObject)
 		if err != nil {
 			return nil, err
 		}
@@ -161,7 +168,8 @@ func (s *Server) GetMapObject(ctx context.Context, req *mapv1.GetMapObjectReques
 		return nil, status.Error(codes.Internal, "failed to load map object")
 	}
 
-	v, err := s.view(ctx, o, caller)
+	callerObject, _ := s.presence.CurrentObject(ctx, caller)
+	v, err := s.view(ctx, o, caller, callerObject)
 	if err != nil {
 		return nil, err
 	}
@@ -201,7 +209,10 @@ func (s *Server) ChangeMapObjectStatus(ctx context.Context, req *mapv1.ChangeMap
 		return nil, status.Error(codes.InvalidArgument, "action must be VISITING or NOT_VISITING")
 	}
 
-	v, err := s.view(ctx, o, caller)
+	// After the mutation the caller's presence reflects the new state (the object
+	// just marked, or "" after NOT_VISITING), so viewer_visiting is accurate.
+	callerObject, _ := s.presence.CurrentObject(ctx, caller)
+	v, err := s.view(ctx, o, caller, callerObject)
 	if err != nil {
 		return nil, err
 	}

@@ -42,6 +42,7 @@ func (f *fakeObjects) ObjectByID(_ context.Context, id string) (postgres.Object,
 type fakePresence struct {
 	counts  map[string]int      // object -> visitor_count
 	friends map[string][]string // object -> friend ids for the caller
+	current map[string]string   // user -> object the user is visiting
 
 	markedVisiting    []markCall
 	markedNotVisiting []markCall
@@ -58,6 +59,10 @@ func (f *fakePresence) MarkVisiting(_ context.Context, user, object string, ttl 
 		f.counts = map[string]int{}
 	}
 	f.counts[object]++
+	if f.current == nil {
+		f.current = map[string]string{}
+	}
+	f.current[user] = object
 	return nil
 }
 
@@ -66,7 +71,12 @@ func (f *fakePresence) MarkNotVisiting(_ context.Context, user, object string) e
 	if f.counts != nil && f.counts[object] > 0 {
 		f.counts[object]--
 	}
+	delete(f.current, user)
 	return nil
+}
+
+func (f *fakePresence) CurrentObject(_ context.Context, user string) (string, error) {
+	return f.current[user], nil
 }
 
 func (f *fakePresence) VisitorCount(_ context.Context, object string) (int, error) {

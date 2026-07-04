@@ -10,14 +10,14 @@ import type {
 // Auth state: opaque token + current user_id, plus login/register/logout and
 // the route-guard helper (Docs/03-Frontend.md "State").
 //
-// TOKEN STORAGE: in-memory only (Pinia state). This is the safer MVP choice per
-// Docs/03-Frontend.md — it avoids the XSS exposure of localStorage, at the cost
-// of requiring a re-login on a full page refresh (the token is lost on reload).
-// TODO(token-storage): if the re-login-on-refresh UX proves too painful, we can
-// persist the token to localStorage instead. Trade-off: convenience (survives
-// refresh) vs. XSS risk (any injected script can read localStorage). If we do,
-// centralize it here (load on init, write on login, clear on logout/401) so no
-// other code touches storage directly. Decision deferred; in-memory for now.
+// TOKEN STORAGE: persisted to localStorage so a page refresh keeps the user
+// logged in while the token is still valid (an expired/invalid token is cleared
+// on the first 401 -> onUnauthorized -> clearSession). Trade-off accepted: this
+// exposes the token to XSS (any injected script can read localStorage). All
+// storage access is centralized here so no other code touches it directly.
+
+const TOKEN_KEY = 'dogmap.token'
+const USER_ID_KEY = 'dogmap.userId'
 
 interface AuthState {
   token: string | null
@@ -25,9 +25,10 @@ interface AuthState {
 }
 
 export const useAuthStore = defineStore('auth', {
+  // Hydrate from localStorage on init so a refresh restores the session.
   state: (): AuthState => ({
-    token: null,
-    userId: null,
+    token: localStorage.getItem(TOKEN_KEY),
+    userId: localStorage.getItem(USER_ID_KEY),
   }),
   getters: {
     isAuthenticated: (state): boolean => state.token !== null,
@@ -37,6 +38,8 @@ export const useAuthStore = defineStore('auth', {
       const res = await api.post<LoginResponse>('/v1/auth/login', payload)
       this.token = res.token
       this.userId = res.user_id
+      localStorage.setItem(TOKEN_KEY, res.token)
+      localStorage.setItem(USER_ID_KEY, res.user_id)
     },
 
     async register(payload: RegisterRequest): Promise<void> {
@@ -66,6 +69,8 @@ export const useAuthStore = defineStore('auth', {
     clearSession(): void {
       this.token = null
       this.userId = null
+      localStorage.removeItem(TOKEN_KEY)
+      localStorage.removeItem(USER_ID_KEY)
     },
   },
 })

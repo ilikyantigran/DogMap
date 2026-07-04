@@ -73,7 +73,11 @@
       "Bash(sed -i '' 's/profilesv1\\\\.ProfilesClient/profilesv1.ProfilesServiceClient/g' internal/clients/clients.go internal/app/auth_server.go)",
       "Bash(sed -i '' 's/profilesv1\\\\.NewProfilesClient/profilesv1.NewProfilesServiceClient/g' internal/clients/clients.go)",
       "Bash(curl -s localhost:8081/v1/auth/register -d '{\"login\":\"Test1\",\"email\":\"t1@example.com\",\"password\":\"pw\"}')",
-      "Bash(curl -s localhost:8081/v1/auth/login -d '{\"login\":\"Test1\",\"password\":\"pw\"}')"
+      "Bash(curl -s localhost:8081/v1/auth/login -d '{\"login\":\"Test1\",\"password\":\"pw\"}')",
+      "Bash(awk '/enum FriendStatus/{f=1} f{print} f&&/}/{exit}' profiles/api/profiles/v1/profiles.proto)",
+      "Bash(cp -r ../map/vendor-proto ./vendor-proto)",
+      "Bash(sed -i '' '/enum FriendStatus/,/}/ s/FRIEND_STATUS_//g' api/profiles/v1/profiles.proto)",
+      "Bash(awk '/enum FriendStatus/{f=1} f{print} f&&/}/{exit}' api/profiles/v1/profiles.proto)"
     ]
   }
 }

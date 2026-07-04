@@ -27,28 +27,28 @@ const (
 type FriendStatus int32
 
 const (
-	FriendStatus_FRIEND_STATUS_NONE        FriendStatus = 0
-	FriendStatus_FRIEND_STATUS_PENDING_OUT FriendStatus = 1 // caller sent a request that is still pending
-	FriendStatus_FRIEND_STATUS_PENDING_IN  FriendStatus = 2 // target sent the caller a pending request
-	FriendStatus_FRIEND_STATUS_FRIENDS     FriendStatus = 3
-	FriendStatus_FRIEND_STATUS_BLOCKED     FriendStatus = 4 // caller blocked target, or target blocked caller
+	FriendStatus_NONE        FriendStatus = 0
+	FriendStatus_PENDING_OUT FriendStatus = 1 // caller sent a request that is still pending
+	FriendStatus_PENDING_IN  FriendStatus = 2 // target sent the caller a pending request
+	FriendStatus_FRIENDS     FriendStatus = 3
+	FriendStatus_BLOCKED     FriendStatus = 4 // caller blocked target, or target blocked caller
 )
 
 // Enum value maps for FriendStatus.
 var (
 	FriendStatus_name = map[int32]string{
-		0: "FRIEND_STATUS_NONE",
-		1: "FRIEND_STATUS_PENDING_OUT",
-		2: "FRIEND_STATUS_PENDING_IN",
-		3: "FRIEND_STATUS_FRIENDS",
-		4: "FRIEND_STATUS_BLOCKED",
+		0: "NONE",
+		1: "PENDING_OUT",
+		2: "PENDING_IN",
+		3: "FRIENDS",
+		4: "BLOCKED",
 	}
 	FriendStatus_value = map[string]int32{
-		"FRIEND_STATUS_NONE":        0,
-		"FRIEND_STATUS_PENDING_OUT": 1,
-		"FRIEND_STATUS_PENDING_IN":  2,
-		"FRIEND_STATUS_FRIENDS":     3,
-		"FRIEND_STATUS_BLOCKED":     4,
+		"NONE":        0,
+		"PENDING_OUT": 1,
+		"PENDING_IN":  2,
+		"FRIENDS":     3,
+		"BLOCKED":     4,
 	}
 )
 
@@ -378,7 +378,7 @@ func (x *GetUserInfoResponse) GetFriendStatus() FriendStatus {
 	if x != nil {
 		return x.FriendStatus
 	}
-	return FriendStatus_FRIEND_STATUS_NONE
+	return FriendStatus_NONE
 }
 
 func (x *GetUserInfoResponse) GetHasPii() bool {
@@ -1138,13 +1138,14 @@ const file_profiles_v1_profiles_proto_rawDesc = "" +
 	"\x05email\x18\x03 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\x05email\">\n" +
 	"\x0eStatusResponse\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\x05R\x04code\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage*\x99\x01\n" +
-	"\fFriendStatus\x12\x16\n" +
-	"\x12FRIEND_STATUS_NONE\x10\x00\x12\x1d\n" +
-	"\x19FRIEND_STATUS_PENDING_OUT\x10\x01\x12\x1c\n" +
-	"\x18FRIEND_STATUS_PENDING_IN\x10\x02\x12\x19\n" +
-	"\x15FRIEND_STATUS_FRIENDS\x10\x03\x12\x19\n" +
-	"\x15FRIEND_STATUS_BLOCKED\x10\x042\xdf\b\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage*S\n" +
+	"\fFriendStatus\x12\b\n" +
+	"\x04NONE\x10\x00\x12\x0f\n" +
+	"\vPENDING_OUT\x10\x01\x12\x0e\n" +
+	"\n" +
+	"PENDING_IN\x10\x02\x12\v\n" +
+	"\aFRIENDS\x10\x03\x12\v\n" +
+	"\aBLOCKED\x10\x042\xdf\b\n" +
 	"\x0fProfilesService\x12m\n" +
 	"\vGetUserInfo\x12\x1f.profiles.v1.GetUserInfoRequest\x1a .profiles.v1.GetUserInfoResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/v1/profiles/get\x12\x7f\n" +
 	"\x0fFindUserByLogin\x12#.profiles.v1.FindUserByLoginRequest\x1a .profiles.v1.GetUserInfoResponse\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\"\x1a/v1/profiles/find-by-login\x12h\n" +

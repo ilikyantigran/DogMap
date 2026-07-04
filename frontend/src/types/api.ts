@@ -142,6 +142,9 @@ export interface MapObject {
   // friend_ids_here is computed for the caller only. Raw visitor lists are
   // NEVER sent to the client (privacy). Absent/[] when no friends are present.
   friend_ids_here: string[]
+  // viewer_visiting: true when the CALLER currently holds presence here. Lets the
+  // client show the correct toggle state and avoid re-marking after a refresh.
+  viewer_visiting: boolean
 }
 
 export interface LoadMapRequest {

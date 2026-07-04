@@ -223,6 +223,10 @@
             "type": "string"
           },
           "description": "friend_ids_here = SINTER(object:{id}:visitors, friends:{caller}).\nOnly the caller's friends appear; never the raw visitor set."
+        },
+        "viewerVisiting": {
+          "type": "boolean",
+          "description": "viewer_visiting is true when the CALLER currently holds presence in this\nobject (derived from presence:{caller}). Lets the client render the correct\ntoggle state and avoid re-marking after a page refresh."
         }
       },
       "description": "MapObject is the client-facing shape. It carries the privacy-filtered presence\nview: a count for everyone and the caller's friends who are here by name (id)."

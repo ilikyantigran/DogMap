@@ -303,7 +303,7 @@ func TestGetUserInfo_NonFriend_ReducedShape(t *testing.T) {
 	if resp.Login != "Test2" || resp.Name != "Bob" {
 		t.Fatalf("reduced shape should still carry login/name, got %+v", resp)
 	}
-	if resp.FriendStatus != profilesv1.FriendStatus_FRIEND_STATUS_NONE {
+	if resp.FriendStatus != profilesv1.FriendStatus_NONE {
 		t.Fatalf("want NONE, got %v", resp.FriendStatus)
 	}
 }
@@ -319,7 +319,7 @@ func TestGetUserInfo_Friend_FullShape(t *testing.T) {
 	if !resp.HasPii || resp.Email != "b@x.io" || resp.Phone != "+200" {
 		t.Fatalf("friend must get full shape with PII, got %+v", resp)
 	}
-	if resp.FriendStatus != profilesv1.FriendStatus_FRIEND_STATUS_FRIENDS {
+	if resp.FriendStatus != profilesv1.FriendStatus_FRIENDS {
 		t.Fatalf("want FRIENDS, got %v", resp.FriendStatus)
 	}
 }
@@ -593,7 +593,7 @@ func TestFindUserByLogin_Found_ReducedShapeNoPII(t *testing.T) {
 	if len(resp.Pets) != 1 || resp.Pets[0].Name != "Bruno" {
 		t.Fatalf("pets should be included in reduced shape, got %+v", resp.Pets)
 	}
-	if resp.FriendStatus != profilesv1.FriendStatus_FRIEND_STATUS_NONE {
+	if resp.FriendStatus != profilesv1.FriendStatus_NONE {
 		t.Fatalf("want NONE, got %v", resp.FriendStatus)
 	}
 }
@@ -641,7 +641,7 @@ func TestFindUserByLogin_FriendStillReducedButStatusFriends(t *testing.T) {
 	if resp.HasPii || resp.Email != "" || resp.Phone != "" {
 		t.Fatalf("find-by-login must stay reduced even for a friend, got %+v", resp)
 	}
-	if resp.FriendStatus != profilesv1.FriendStatus_FRIEND_STATUS_FRIENDS {
+	if resp.FriendStatus != profilesv1.FriendStatus_FRIENDS {
 		t.Fatalf("want FRIENDS status, got %v", resp.FriendStatus)
 	}
 }

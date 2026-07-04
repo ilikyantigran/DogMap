@@ -136,8 +136,12 @@ type MapObject struct {
 	// friend_ids_here = SINTER(object:{id}:visitors, friends:{caller}).
 	// Only the caller's friends appear; never the raw visitor set.
 	FriendIdsHere []string `protobuf:"bytes,6,rep,name=friend_ids_here,json=friendIdsHere,proto3" json:"friend_ids_here,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// viewer_visiting is true when the CALLER currently holds presence in this
+	// object (derived from presence:{caller}). Lets the client render the correct
+	// toggle state and avoid re-marking after a page refresh.
+	ViewerVisiting bool `protobuf:"varint,7,opt,name=viewer_visiting,json=viewerVisiting,proto3" json:"viewer_visiting,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *MapObject) Reset() {
@@ -210,6 +214,13 @@ func (x *MapObject) GetFriendIdsHere() []string {
 		return x.FriendIdsHere
 	}
 	return nil
+}
+
+func (x *MapObject) GetViewerVisiting() bool {
+	if x != nil {
+		return x.ViewerVisiting
+	}
+	return false
 }
 
 type LoadMapRequest struct {
@@ -484,7 +495,7 @@ var File_map_service_v1_map_proto protoreflect.FileDescriptor
 
 const file_map_service_v1_map_proto_rawDesc = "" +
 	"\n" +
-	"\x18map-service/v1/map.proto\x12\x06map.v1\x1a\x17validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\"\xd7\x01\n" +
+	"\x18map-service/v1/map.proto\x12\x06map.v1\x1a\x17validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\"\x80\x02\n" +
 	"\tMapObject\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x123\n" +
 	"\vobject_type\x18\x02 \x01(\x0e2\x12.map.v1.ObjectTypeR\n" +
@@ -492,7 +503,8 @@ const file_map_service_v1_map_proto_rawDesc = "" +
 	"\tlongitude\x18\x03 \x01(\x01R\tlongitude\x12\x1a\n" +
 	"\blatitude\x18\x04 \x01(\x01R\blatitude\x12#\n" +
 	"\rvisitor_count\x18\x05 \x01(\rR\fvisitorCount\x12&\n" +
-	"\x0ffriend_ids_here\x18\x06 \x03(\tR\rfriendIdsHere\"|\n" +
+	"\x0ffriend_ids_here\x18\x06 \x03(\tR\rfriendIdsHere\x12'\n" +
+	"\x0fviewer_visiting\x18\a \x01(\bR\x0eviewerVisiting\"|\n" +
 	"\x0eLoadMapRequest\x125\n" +
 	"\tlongitude\x18\x01 \x01(\x01B\x17\xfaB\x14\x12\x12\x19\x00\x00\x00\x00\x00\x80f@)\x00\x00\x00\x00\x00\x80f\xc0R\tlongitude\x123\n" +
 	"\blatitude\x18\x02 \x01(\x01B\x17\xfaB\x14\x12\x12\x19\x00\x00\x00\x00\x00\x80V@)\x00\x00\x00\x00\x00\x80V\xc0R\blatitude\"l\n" +

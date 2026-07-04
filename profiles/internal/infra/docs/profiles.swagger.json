@@ -393,14 +393,14 @@
     "v1FriendStatus": {
       "type": "string",
       "enum": [
-        "FRIEND_STATUS_NONE",
-        "FRIEND_STATUS_PENDING_OUT",
-        "FRIEND_STATUS_PENDING_IN",
-        "FRIEND_STATUS_FRIENDS",
-        "FRIEND_STATUS_BLOCKED"
+        "NONE",
+        "PENDING_OUT",
+        "PENDING_IN",
+        "FRIENDS",
+        "BLOCKED"
       ],
-      "default": "FRIEND_STATUS_NONE",
-      "description": "FriendStatus is computed for the calling user relative to a target.\n\n - FRIEND_STATUS_PENDING_OUT: caller sent a request that is still pending\n - FRIEND_STATUS_PENDING_IN: target sent the caller a pending request\n - FRIEND_STATUS_BLOCKED: caller blocked target, or target blocked caller"
+      "default": "NONE",
+      "description": "FriendStatus is computed for the calling user relative to a target.\n\n - PENDING_OUT: caller sent a request that is still pending\n - PENDING_IN: target sent the caller a pending request\n - BLOCKED: caller blocked target, or target blocked caller"
     },
     "v1GetUserInfoRequest": {
       "type": "object",

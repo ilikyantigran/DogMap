@@ -68,6 +68,10 @@ message MapObject {
   // friend_ids_here = SINTER(object:{id}:visitors, friends:{caller}).
   // Only the caller's friends appear; never the raw visitor set.
   repeated string friend_ids_here = 6;
+  // viewer_visiting is true when the CALLER currently holds presence in this
+  // object (derived from presence:{caller}). Lets the client render the correct
+  // toggle state and avoid re-marking after a page refresh.
+  bool viewer_visiting = 7;
 }
 
 message LoadMapRequest {

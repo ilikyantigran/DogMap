@@ -91,9 +91,25 @@ export const useMapStore = defineStore('map', {
         }
         const res = await api.post<LoadMapResponse>('/v1/map/load', req)
         this.objects = res.objects ?? []
+        // Presence is authoritative from the backend (viewer_visiting): restore
+        // which object (if any) the caller is currently in — this survives a page
+        // refresh and prevents re-marking — and keep the heartbeat in sync.
+        const here = this.objects.find((o) => o.viewer_visiting)
+        this.myPresenceObjectId = here?.id ?? null
+        if (this.myPresenceObjectId) this.startHeartbeat()
+        else this.stopHeartbeat()
       } finally {
         this.loading = false
       }
+    },
+
+    /** Re-fetch one object's presence view — e.g. when its popup is opened. */
+    async refreshObject(id: string): Promise<void> {
+      const res = await api.post<MapObjectResponse>('/v1/map/object', { id })
+      const obj = extractObject(res)
+      this.upsertObject(obj)
+      if (obj.viewer_visiting) this.myPresenceObjectId = obj.id
+      else if (this.myPresenceObjectId === obj.id) this.myPresenceObjectId = null
     },
 
     /** Merge an updated single object back into the list (after a status change). */
@@ -113,21 +129,13 @@ export const useMapStore = defineStore('map', {
         id: objectId,
         action: visiting ? 'VISITING' : 'NOT_VISITING',
       }
-      const res = await api.post<MapObjectResponse>(
-        '/v1/map/status',
-        req,
-      )
+      const res = await api.post<MapObjectResponse>('/v1/map/status', req)
       this.upsertObject(extractObject(res))
 
-      if (visiting) {
-        this.myPresenceObjectId = objectId
-        this.startHeartbeat()
-      } else {
-        if (this.myPresenceObjectId === objectId) {
-          this.myPresenceObjectId = null
-        }
-        this.stopHeartbeat()
-      }
+      // Refresh the whole map so every counter updates immediately (not just on
+      // the next poll tick), and so the caller's own presence (viewer_visiting ->
+      // myPresenceObjectId + heartbeat, in refresh()) is derived authoritatively.
+      await this.refresh()
     },
 
     /**
