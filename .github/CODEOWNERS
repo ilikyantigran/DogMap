@@ -1,0 +1,4 @@
+# The repository owner reviews and merges every change (see the feature-pr-flow
+# skill + pr-reviewer agent). Listing the owner here auto-requests them as a
+# reviewer on every pull request.
+* @ilikyantigran
