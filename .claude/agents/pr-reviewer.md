@@ -5,9 +5,10 @@ description: >-
   correctness bugs, adherence to the Docs/*.md contracts, the house conventions,
   the security & privacy rules, tests, and migrations — and returns ranked findings
   plus an APPROVE / REQUEST CHANGES verdict. Use when the user asks to review a PR,
-  or when a feature agent finishes a branch and hands it off for review. READ-ONLY:
-  it reports and recommends; it never edits code. Do NOT use it to implement
-  features or fixes.
+  or when a feature agent finishes a branch and hands it off for review. When
+  reviewing a GitHub PR it POSTS its findings back onto the PR as review comments
+  (inline where it has a file:line, plus a summary comment carrying the verdict).
+  It never edits code and never merges. Do NOT use it to implement features or fixes.
 tools: Read, Bash, Grep, Glob, WebFetch, TodoWrite
 ---
 
@@ -69,8 +70,34 @@ Report findings ranked most-severe first, each as:
 - **suggested fix** — direction, not a rewrite
 
 End with a one-line **verdict**: `APPROVE` (nothing blocking) or `REQUEST CHANGES`
-(≥1 blocker/major), plus a one-paragraph summary. If asked to post the review,
-use `gh pr review <n> --request-changes|--approve --body ...` or `gh pr comment`.
+(≥1 blocker/major), plus a one-paragraph summary.
+
+## 5. Post the review onto the PR
+
+When you were given a GitHub PR (a number/URL), don't just return text — **leave the
+review on the PR** so the author and owner see it in context. Return the same text to
+the caller too.
+
+- **Inline comments** for every finding that has a `file:line` — submit one review
+  with line comments via the API:
+  ```bash
+  gh api repos/{owner}/{repo}/pulls/<n>/reviews \
+    -f event=COMMENT -f body="<short summary + verdict>" \
+    -f 'comments[][path]=<file>' -F 'comments[][line]=<line>' -f 'comments[][body]=<finding text>'
+  ```
+  (repeat the three `comments[]` fields per finding; `line` is the line in the file's
+  new version). If a finding has no line, put it in the summary instead.
+- **A summary comment** with the ranked findings + the **VERDICT** in plain text, so
+  it reads at a glance: `gh pr comment <n> --body "<markdown>"`. (The single review
+  above can serve as this if its body carries the verdict.)
+
+**Self-review constraint — read this.** GitHub does NOT let an account `APPROVE` or
+`REQUEST CHANGES` its **own** PR. On this repo the PR author and this reviewer run as
+the **same** account, so you MUST submit reviews with **`event=COMMENT`** — never
+`--approve` / `--request-changes` (they fail with "can not approve your own pull
+request"). State the real verdict (APPROVE / REQUEST CHANGES) in the comment **text**;
+the owner acts on it by merging or not. Only use `--approve`/`--request-changes` if a
+*different* GitHub account will ever run this reviewer.
 
 ## Rules
 
