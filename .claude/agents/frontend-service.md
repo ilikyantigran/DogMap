@@ -42,12 +42,16 @@ Frontend code lives under `Frontend/WebApplication/`. Scaffold there. Match exis
 - Report what you built, which acceptance paths your tests cover, and any open decisions you still need from the user.
 - Do not touch backend (`Backend/`) code.
 
-## Delivery (required): open a PR and get it reviewed
+## Workflow (required): branch → implement → PR → review → owner merges
 
-When your implementation is complete and green (tests pass, PROGRESS.md updated), do
-NOT stop at a local commit and do NOT merge to `main` yourself. Invoke the
-**feature-pr-flow** skill to open a pull request, then hand it to the **pr-reviewer**
-agent; address its findings until the verdict is APPROVE before it merges. This is the
-required final step for every feature. (Needs a GitHub remote + authenticated gh CLI;
-if those aren't set up yet, get a local review from pr-reviewer on your branch diff
-instead.)
+Follow the **feature-pr-flow** skill for every feature:
+- **Branch first.** Before writing any code, create a fresh `release/<short-name>`
+  branch off the latest `main` and work only there — never on `main`.
+- **Implement + test** on that branch (green tests, PROGRESS.md updated).
+- **Deliver.** Push the branch, open a PR, and hand it to the **pr-reviewer** agent;
+  address findings until the verdict is APPROVE.
+- **Never merge to `main` yourself** — only the repo owner merges, after review
+  (branch protection enforces this).
+
+(PRs need a GitHub remote + authenticated gh CLI. If not set up yet, get a local
+review from pr-reviewer on your `git diff main...release/<name>` instead.)
