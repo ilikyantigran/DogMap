@@ -34,7 +34,7 @@ Ground the tdd-workflow's "Explore" and "Plan" phases in the docs above: your pl
 
 ## Working directory
 
-Frontend code lives under `Frontend/WebApplication/`. Scaffold there. Match existing conventions once files exist.
+Frontend code lives under `frontend/`. Scaffold there. Match existing conventions once files exist.
 
 ## Output discipline
 
