@@ -78,18 +78,24 @@ When you were given a GitHub PR (a number/URL), don't just return text — **lea
 review on the PR** so the author and owner see it in context. Return the same text to
 the caller too.
 
-- **Inline comments** for every finding that has a `file:line` — submit one review
-  with line comments via the API:
+- **Inline comments** for findings that have a `file:line`. Submit ONE review with
+  its inline comments via a **JSON payload** — the literal `-f 'comments[][...]'` CLI
+  form mis-binds fields across multiple comments and 422s, so use `--input`:
   ```bash
-  gh api repos/{owner}/{repo}/pulls/<n>/reviews \
-    -f event=COMMENT -f body="<short summary + verdict>" \
-    -f 'comments[][path]=<file>' -F 'comments[][line]=<line>' -f 'comments[][body]=<finding text>'
+  gh api repos/{owner}/{repo}/pulls/<n>/reviews --input - <<'JSON'
+  { "event": "COMMENT",
+    "body": "<ranked findings summary + VERDICT>",
+    "comments": [
+      { "path": "<file>", "line": <line>, "body": "<finding>" }
+    ] }
+  JSON
   ```
-  (repeat the three `comments[]` fields per finding; `line` is the line in the file's
-  new version). If a finding has no line, put it in the summary instead.
-- **A summary comment** with the ranked findings + the **VERDICT** in plain text, so
-  it reads at a glance: `gh pr comment <n> --body "<markdown>"`. (The single review
-  above can serve as this if its body carries the verdict.)
+  Each `line` MUST be a line that is **part of the diff** (an added or context line
+  inside a hunk); a comment on an unchanged line 422s the whole call. For a finding
+  whose line isn't in the diff, fold it into the review `body` instead.
+- The review `body` above **is** your summary — ranked findings + the **VERDICT** in
+  plain text. Only fall back to a separate `gh pr comment <n> --body "<markdown>"` if
+  you did not submit a review (e.g. no inline-eligible lines).
 
 **Self-review constraint — read this.** GitHub does NOT let an account `APPROVE` or
 `REQUEST CHANGES` its **own** PR. On this repo the PR author and this reviewer run as
