@@ -499,6 +499,10 @@ func TestListFriends_ShapesIncomingOutgoing(t *testing.T) {
 	if len(resp.OutgoingRequests) != 1 || resp.OutgoingRequests[0].ToUserId != "u3" {
 		t.Fatalf("outgoing wrong: %+v", resp.OutgoingRequests)
 	}
+	// to_login lets the UI show a nickname instead of a UUID.
+	if resp.OutgoingRequests[0].ToLogin != "Test3" {
+		t.Fatalf("outgoing to_login = %q, want Test3", resp.OutgoingRequests[0].ToLogin)
+	}
 }
 
 // --- CreateProfile idempotency (Auth handoff) -------------------------------

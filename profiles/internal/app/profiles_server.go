@@ -334,8 +334,13 @@ func (s *Server) ListFriends(ctx context.Context, _ *profilesv1.ListFriendsReque
 		})
 	}
 	for _, r := range outgoing {
+		// Resolve the target's login so the UI shows a nickname, not a UUID.
+		toLogin, err := s.store.LoginFor(ctx, r.ToUserID)
+		if err != nil {
+			return &profilesv1.ListFriendsResponse{Code: codeInternal, Message: "internal error"}, nil
+		}
 		resp.OutgoingRequests = append(resp.OutgoingRequests, &profilesv1.OutgoingRequest{
-			ToUserId: r.ToUserID, FriendRequestId: r.ID,
+			ToUserId: r.ToUserID, ToLogin: toLogin, FriendRequestId: r.ID,
 		})
 	}
 	return resp, nil

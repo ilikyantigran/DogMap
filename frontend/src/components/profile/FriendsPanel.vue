@@ -40,41 +40,7 @@ async function run(fn: () => Promise<void>, ok?: string) {
 </script>
 
 <template>
-  <div class="card">
-    <h3 style="margin-top: 0">Friends</h3>
-
-    <!-- Friends list with on-walk indicator + where -->
-    <p v-if="friendList.length === 0" style="color: var(--dm-muted)">
-      No friends yet.
-    </p>
-    <ul style="list-style: none; padding: 0">
-      <li
-        v-for="f in friendList"
-        :key="f.user_id"
-        style="display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0"
-      >
-        <span>{{ f.login }}</span>
-        <span v-if="f.on_walk" title="On a walk" style="color: var(--dm-primary)">
-          🐾 on a walk
-          <RouterLink
-            v-if="f.current_object_id"
-            :to="{ name: 'map', query: { object: f.current_object_id } }"
-          >
-            (where)
-          </RouterLink>
-        </span>
-        <span v-else style="color: var(--dm-muted)">offline</span>
-        <span style="flex: 1" />
-        <button type="button" @click="run(() => friends.removeFriend(f.user_id), 'Removed')">
-          Remove
-        </button>
-        <button type="button" class="danger" @click="run(() => friends.block(f.user_id), 'Blocked')">
-          Block
-        </button>
-      </li>
-    </ul>
-  </div>
-
+  <!-- Pending requests are shown ABOVE the friends list. -->
   <!-- Incoming requests: approve / decline -->
   <div class="card" v-if="incoming.length">
     <h4 style="margin-top: 0">Incoming requests</h4>
@@ -108,7 +74,42 @@ async function run(fn: () => Promise<void>, ok?: string) {
     <h4 style="margin-top: 0">Sent requests</h4>
     <ul style="list-style: none; padding: 0">
       <li v-for="r in outgoing" :key="r.friend_request_id">
-        Request to {{ r.to_user_id }} — pending
+        Request to {{ r.to_login }} — pending
+      </li>
+    </ul>
+  </div>
+
+  <!-- Friends list with on-walk indicator + where -->
+  <div class="card">
+    <h3 style="margin-top: 0">Friends</h3>
+
+    <p v-if="friendList.length === 0" style="color: var(--dm-muted)">
+      No friends yet.
+    </p>
+    <ul style="list-style: none; padding: 0">
+      <li
+        v-for="f in friendList"
+        :key="f.user_id"
+        style="display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0"
+      >
+        <span>{{ f.login }}</span>
+        <span v-if="f.on_walk" title="On a walk" style="color: var(--dm-primary)">
+          🐾 on a walk
+          <RouterLink
+            v-if="f.current_object_id"
+            :to="{ name: 'map', query: { object: f.current_object_id } }"
+          >
+            (where)
+          </RouterLink>
+        </span>
+        <span v-else style="color: var(--dm-muted)">offline</span>
+        <span style="flex: 1" />
+        <button type="button" @click="run(() => friends.removeFriend(f.user_id), 'Removed')">
+          Remove
+        </button>
+        <button type="button" class="danger" @click="run(() => friends.block(f.user_id), 'Blocked')">
+          Block
+        </button>
       </li>
     </ul>
   </div>
