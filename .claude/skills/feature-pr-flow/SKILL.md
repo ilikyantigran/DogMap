@@ -45,8 +45,10 @@ git switch -c release/<short-name>      # e.g. release/find-by-login
    `03-Frontend.md`) section it implements, cross-service contract points others must
    match, and the test evidence (what you ran, that it's green).
 3. **Request review from `pr-reviewer`.** Hand the PR (number/URL) to the
-   **pr-reviewer** agent. It returns ranked findings + an APPROVE / REQUEST CHANGES
-   verdict. It is read-only — it never fixes anything.
+   **pr-reviewer** agent. It **posts its findings onto the PR** as review comments
+   (inline + a summary carrying the verdict) and returns the same to you. It is
+   read-only on code and never merges. (On a solo repo it comments with
+   `event=COMMENT`, not approve/request-changes, which GitHub blocks on own PRs.)
 4. **Address findings.** Fix every `blocker`/`major`; decide per case on `minor`/`nit`.
    Re-run tests, push updates to the same branch, and re-request review until the
    verdict is **APPROVE**.
