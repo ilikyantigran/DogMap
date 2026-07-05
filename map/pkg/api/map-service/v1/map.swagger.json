@@ -16,6 +16,40 @@
     "application/json"
   ],
   "paths": {
+    "/v1/map/friends-presence": {
+      "post": {
+        "summary": "FriendsPresence returns, for the caller's friends who currently hold presence\n(a live presence:{friend} key), where each of them is: the object id, its\nname, and its coordinates. The caller is the token owner (no body id) and the\nfriend set is friends:{caller} (owned by Profiles, read-only here). Friends\nwith no live presence never appear — \"on a walk\" is derived, not stored.",
+        "operationId": "MapService_FriendsPresence",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FriendsPresenceResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "FriendsPresenceRequest carries no fields: the acting user is the token owner\n(header auth_token), never the body.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1FriendsPresenceRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MapService"
+        ]
+      }
+    },
     "/v1/map/load": {
       "post": {
         "summary": "LoadMap returns every map object within 5km of the caller's point\n(ST_DWithin(location, point, 5000)), each with visitor_count and the\ncaller's friend_ids_here.",
@@ -156,6 +190,52 @@
         }
       }
     },
+    "v1FriendPresence": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "objectId": {
+          "type": "string"
+        },
+        "objectName": {
+          "type": "string"
+        },
+        "latitude": {
+          "type": "number",
+          "format": "double"
+        },
+        "longitude": {
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "description": "FriendPresence is one friend currently on a walk and where they are."
+    },
+    "v1FriendsPresenceRequest": {
+      "type": "object",
+      "description": "FriendsPresenceRequest carries no fields: the acting user is the token owner\n(header auth_token), never the body."
+    },
+    "v1FriendsPresenceResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "friends": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1FriendPresence"
+          }
+        }
+      }
+    },
     "v1GetMapObjectRequest": {
       "type": "object",
       "properties": {
@@ -227,6 +307,10 @@
         "viewerVisiting": {
           "type": "boolean",
           "description": "viewer_visiting is true when the CALLER currently holds presence in this\nobject (derived from presence:{caller}). Lets the client render the correct\ntoggle state and avoid re-marking after a page refresh."
+        },
+        "name": {
+          "type": "string",
+          "description": "name is the human-readable object name (from map_objects.name; may be empty\nfor unnamed OSM features). Lets the client label markers and the friends\nwidget without a second lookup."
         }
       },
       "description": "MapObject is the client-facing shape. It carries the privacy-filtered presence\nview: a count for everyone and the caller's friends who are here by name (id)."

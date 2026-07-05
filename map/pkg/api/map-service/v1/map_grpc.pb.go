@@ -22,6 +22,7 @@ const (
 	MapService_LoadMap_FullMethodName               = "/map.v1.MapService/LoadMap"
 	MapService_GetMapObject_FullMethodName          = "/map.v1.MapService/GetMapObject"
 	MapService_ChangeMapObjectStatus_FullMethodName = "/map.v1.MapService/ChangeMapObjectStatus"
+	MapService_FriendsPresence_FullMethodName       = "/map.v1.MapService/FriendsPresence"
 )
 
 // MapServiceClient is the client API for MapService service.
@@ -46,6 +47,12 @@ type MapServiceClient interface {
 	// object and returns the updated object view. No user_id in the body — the
 	// acting user is the token owner.
 	ChangeMapObjectStatus(ctx context.Context, in *ChangeMapObjectStatusRequest, opts ...grpc.CallOption) (*MapObjectResponse, error)
+	// FriendsPresence returns, for the caller's friends who currently hold presence
+	// (a live presence:{friend} key), where each of them is: the object id, its
+	// name, and its coordinates. The caller is the token owner (no body id) and the
+	// friend set is friends:{caller} (owned by Profiles, read-only here). Friends
+	// with no live presence never appear — "on a walk" is derived, not stored.
+	FriendsPresence(ctx context.Context, in *FriendsPresenceRequest, opts ...grpc.CallOption) (*FriendsPresenceResponse, error)
 }
 
 type mapServiceClient struct {
@@ -86,6 +93,16 @@ func (c *mapServiceClient) ChangeMapObjectStatus(ctx context.Context, in *Change
 	return out, nil
 }
 
+func (c *mapServiceClient) FriendsPresence(ctx context.Context, in *FriendsPresenceRequest, opts ...grpc.CallOption) (*FriendsPresenceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FriendsPresenceResponse)
+	err := c.cc.Invoke(ctx, MapService_FriendsPresence_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MapServiceServer is the server API for MapService service.
 // All implementations must embed UnimplementedMapServiceServer
 // for forward compatibility.
@@ -108,6 +125,12 @@ type MapServiceServer interface {
 	// object and returns the updated object view. No user_id in the body — the
 	// acting user is the token owner.
 	ChangeMapObjectStatus(context.Context, *ChangeMapObjectStatusRequest) (*MapObjectResponse, error)
+	// FriendsPresence returns, for the caller's friends who currently hold presence
+	// (a live presence:{friend} key), where each of them is: the object id, its
+	// name, and its coordinates. The caller is the token owner (no body id) and the
+	// friend set is friends:{caller} (owned by Profiles, read-only here). Friends
+	// with no live presence never appear — "on a walk" is derived, not stored.
+	FriendsPresence(context.Context, *FriendsPresenceRequest) (*FriendsPresenceResponse, error)
 	mustEmbedUnimplementedMapServiceServer()
 }
 
@@ -126,6 +149,9 @@ func (UnimplementedMapServiceServer) GetMapObject(context.Context, *GetMapObject
 }
 func (UnimplementedMapServiceServer) ChangeMapObjectStatus(context.Context, *ChangeMapObjectStatusRequest) (*MapObjectResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ChangeMapObjectStatus not implemented")
+}
+func (UnimplementedMapServiceServer) FriendsPresence(context.Context, *FriendsPresenceRequest) (*FriendsPresenceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method FriendsPresence not implemented")
 }
 func (UnimplementedMapServiceServer) mustEmbedUnimplementedMapServiceServer() {}
 func (UnimplementedMapServiceServer) testEmbeddedByValue()                    {}
@@ -202,6 +228,24 @@ func _MapService_ChangeMapObjectStatus_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MapService_FriendsPresence_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FriendsPresenceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MapServiceServer).FriendsPresence(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MapService_FriendsPresence_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MapServiceServer).FriendsPresence(ctx, req.(*FriendsPresenceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MapService_ServiceDesc is the grpc.ServiceDesc for MapService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -220,6 +264,10 @@ var MapService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ChangeMapObjectStatus",
 			Handler:    _MapService_ChangeMapObjectStatus_Handler,
+		},
+		{
+			MethodName: "FriendsPresence",
+			Handler:    _MapService_FriendsPresence_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

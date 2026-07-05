@@ -33,6 +33,17 @@ unfinished item in **Next**.
 
 ## Completed since last update
 
+- Friends-on-map slice (branch `release/map-friends-widget`, 2026-07-05):
+  - `types/api.ts`: `name` on MapObject; `FriendPresence` + `FriendsPresenceResponse`.
+  - `mapStore`: `friendsPresence` state; `fetchFriendsPresence()` (POST
+    `/v1/map/friends-presence`, folded into the refresh tick); `focusFriendObject(fp)`
+    → setCenter → ensure object loaded (refreshObject if outside radius) → select
+    (MapView `watch(selectedId)` opens the popup).
+  - `components/map/FriendsOnMap.vue`: right-hand rail listing friends on a walk
+    (login via friendsStore, place name from FriendsPresence); click → focusFriendObject.
+  - `MapPage.vue`: two-column layout, mounts FriendsOnMap.
+  - Tests: mapStore specs for fetchFriendsPresence, refresh fan-out, focus
+    (loaded + not-loaded paths). `npm test` (33) + `npm run build` green.
 - MapView.vue — Leaflet + OSM tiles, circle markers per object, Vue-mounted
   popups wired to the store.
 - MapPage.vue — geolocation center + fallback, start/stop map polling,

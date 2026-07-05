@@ -36,6 +36,9 @@ type PresenceStore interface {
 	// CurrentObject returns the object the caller currently holds presence in, or
 	// "" if none — used to set viewer_visiting on the returned objects.
 	CurrentObject(ctx context.Context, user string) (string, error)
+	// Friends returns the caller's cached friend set (friends:{caller}). Read-only
+	// — Profiles owns the set. Used by FriendsPresence to enumerate friends.
+	Friends(ctx context.Context, caller string) ([]string, error)
 }
 
 // TokenResolver maps an opaque session token to the acting user id. Auth owns
@@ -116,6 +119,7 @@ func (s *Server) view(ctx context.Context, o postgres.Object, caller, callerObje
 		VisitorCount:   uint32(count),
 		FriendIdsHere:  friends,
 		ViewerVisiting: o.ID == callerObject && callerObject != "",
+		Name:           o.Name,
 	}, nil
 }
 
@@ -217,6 +221,60 @@ func (s *Server) ChangeMapObjectStatus(ctx context.Context, req *mapv1.ChangeMap
 		return nil, err
 	}
 	return &mapv1.MapObjectResponse{Code: 0, Message: "ok", Object: v}, nil
+}
+
+// FriendsPresence returns where the caller's friends currently on a walk are. For
+// each friend in friends:{caller} that holds a live presence:{friend} key, it
+// resolves the object row and emits {user_id, object_id, object_name, lat, lon}.
+// Friends with no live presence — or whose object row has since disappeared — are
+// silently skipped, so the list reflects only friends actually on a walk right now.
+// The caller is the token owner (no body id); the friend set is Profiles-owned and
+// read-only here.
+func (s *Server) FriendsPresence(ctx context.Context, _ *mapv1.FriendsPresenceRequest) (*mapv1.FriendsPresenceResponse, error) {
+	caller, err := s.callerID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	friendIDs, err := s.presence.Friends(ctx, caller)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to read friends")
+	}
+
+	// Cache object lookups so several friends at the same object hit the DB once.
+	objCache := make(map[string]postgres.Object)
+	out := make([]*mapv1.FriendPresence, 0, len(friendIDs))
+	for _, friend := range friendIDs {
+		objectID, err := s.presence.CurrentObject(ctx, friend)
+		if err != nil {
+			return nil, status.Error(codes.Internal, "failed to read presence")
+		}
+		if objectID == "" {
+			continue // not on a walk right now
+		}
+
+		o, ok := objCache[objectID]
+		if !ok {
+			o, err = s.objects.ObjectByID(ctx, objectID)
+			if errors.Is(err, postgres.ErrNotFound) {
+				continue // object gone; skip rather than emit a dangling pin
+			}
+			if err != nil {
+				return nil, status.Error(codes.Internal, "failed to load map object")
+			}
+			objCache[objectID] = o
+		}
+
+		out = append(out, &mapv1.FriendPresence{
+			UserId:     friend,
+			ObjectId:   o.ID,
+			ObjectName: o.Name,
+			Latitude:   o.Latitude,
+			Longitude:  o.Longitude,
+		})
+	}
+
+	return &mapv1.FriendsPresenceResponse{Code: 0, Message: "ok", Friends: out}, nil
 }
 
 func objectTypeToProto(t string) mapv1.ObjectType {

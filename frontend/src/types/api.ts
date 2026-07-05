@@ -146,6 +146,22 @@ export interface MapObject {
   // viewer_visiting: true when the CALLER currently holds presence here. Lets the
   // client show the correct toggle state and avoid re-marking after a refresh.
   viewer_visiting: boolean
+  // Human-readable object name (may be '' for unnamed OSM features).
+  name: string
+}
+
+// One friend currently on a walk and where they are. Returned by FriendsPresence
+// (POST /v1/map/friends-presence). Only friends holding a live presence key appear.
+export interface FriendPresence {
+  user_id: string
+  object_id: string
+  object_name: string
+  latitude: number
+  longitude: number
+}
+
+export interface FriendsPresenceResponse extends ApiEnvelope {
+  friends: FriendPresence[]
 }
 
 export interface LoadMapRequest {

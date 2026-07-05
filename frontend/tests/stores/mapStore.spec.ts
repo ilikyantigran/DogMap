@@ -23,13 +23,15 @@ function obj(over: Partial<MapObject> = {}): MapObject {
     visitor_count: 0,
     friend_ids_here: [],
     viewer_visiting: false,
+    name: 'Test Park',
     ...over,
   }
 }
 
-// setVisiting makes TWO calls: POST /v1/map/status (the mark) then POST
-// /v1/map/load (the follow-up refresh). Route the mock by URL so both resolve,
-// and so refresh() derives the caller's presence from viewer_visiting.
+// setVisiting makes calls to POST /v1/map/status (the mark) then POST /v1/map/load
+// (the follow-up refresh). refresh() also fans out to POST /v1/map/friends-presence.
+// Route the mock by URL so all resolve, and so refresh() derives the caller's
+// presence from viewer_visiting.
 function routeMock(statusObj: MapObject, loadObjs: MapObject[]) {
   post.mockImplementation((url: string) => {
     if (url === '/v1/map/status') {
@@ -37,6 +39,9 @@ function routeMock(statusObj: MapObject, loadObjs: MapObject[]) {
     }
     if (url === '/v1/map/load') {
       return Promise.resolve({ code: 0, message: 'ok', objects: loadObjs })
+    }
+    if (url === '/v1/map/friends-presence') {
+      return Promise.resolve({ code: 0, message: 'ok', friends: [] })
     }
     return Promise.resolve({ code: 0, message: 'ok' })
   })
@@ -153,12 +158,112 @@ describe('mapStore', () => {
     expect(heartbeatCalls).toHaveLength(0)
   })
 
+  it('fetchFriendsPresence loads friends currently on a walk', async () => {
+    post.mockResolvedValue({
+      code: 0,
+      message: 'ok',
+      friends: [
+        {
+          user_id: 'u1',
+          object_id: 'park-9',
+          object_name: 'Riverside',
+          latitude: 51.6,
+          longitude: -0.2,
+        },
+      ],
+    })
+    const map = useMapStore()
+
+    await map.fetchFriendsPresence()
+
+    expect(post).toHaveBeenCalledWith('/v1/map/friends-presence', {})
+    expect(map.friendsPresence).toHaveLength(1)
+    expect(map.friendsPresence[0].object_name).toBe('Riverside')
+  })
+
+  it('refresh also refreshes friends presence', async () => {
+    post.mockImplementation((url: string) => {
+      if (url === '/v1/map/friends-presence') {
+        return Promise.resolve({
+          code: 0,
+          message: 'ok',
+          friends: [
+            {
+              user_id: 'u1',
+              object_id: 'park-1',
+              object_name: 'Test Park',
+              latitude: 51.5,
+              longitude: -0.1,
+            },
+          ],
+        })
+      }
+      return Promise.resolve({ code: 0, message: 'ok', objects: [obj()] })
+    })
+    const map = useMapStore()
+
+    await map.refresh()
+
+    expect(post).toHaveBeenCalledWith('/v1/map/friends-presence', {})
+    expect(map.friendsPresence).toHaveLength(1)
+  })
+
+  it('focusFriendObject centers + selects an already-loaded object without refetch', async () => {
+    const map = useMapStore()
+    map.objects = [obj({ id: 'park-1' })]
+    post.mockClear()
+
+    await map.focusFriendObject({
+      user_id: 'u1',
+      object_id: 'park-1',
+      object_name: 'Test Park',
+      latitude: 51.7,
+      longitude: -0.3,
+    })
+
+    expect(map.center).toEqual({ latitude: 51.7, longitude: -0.3 })
+    expect(map.selectedId).toBe('park-1')
+    // Object already loaded -> no per-object fetch needed.
+    expect(post).not.toHaveBeenCalledWith('/v1/map/object', expect.anything())
+  })
+
+  it('focusFriendObject fetches the object first when it is not yet loaded', async () => {
+    const map = useMapStore()
+    map.objects = [] // friend is outside the current radius: no marker yet
+    post.mockImplementation((url: string) => {
+      if (url === '/v1/map/object') {
+        return Promise.resolve({
+          code: 0,
+          message: 'ok',
+          object: obj({ id: 'far-park' }),
+        })
+      }
+      return Promise.resolve({ code: 0, message: 'ok' })
+    })
+
+    await map.focusFriendObject({
+      user_id: 'u1',
+      object_id: 'far-park',
+      object_name: 'Far Park',
+      latitude: 52,
+      longitude: 1,
+    })
+
+    // Pulls the single object so MapView has a marker to open, then selects it.
+    expect(post).toHaveBeenCalledWith('/v1/map/object', { id: 'far-park' })
+    expect(map.objects.some((o) => o.id === 'far-park')).toBe(true)
+    expect(map.selectedId).toBe('far-park')
+  })
+
   it('stopPolling stops both refresh and heartbeat timers', async () => {
     const map = useMapStore()
     map.objects = [obj()]
     post.mockResolvedValue({ code: 0, message: 'ok', objects: [obj()] })
 
     map.startPolling()
+    // Let the immediate refresh tick (LoadMap + friends-presence fan-out) settle
+    // before we clear, so we only assert about calls AFTER stopPolling.
+    await vi.advanceTimersByTimeAsync(0)
     post.mockClear()
     map.stopPolling()
 

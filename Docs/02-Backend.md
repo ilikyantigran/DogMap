@@ -217,6 +217,7 @@ Response — objects within **5km** (`ST_DWithin(location, point, 5000)`):
     {
       "id": "uuid",
       "object_type": "PARK|DOG_PARK|DOG_BEACH",
+      "name": "string",
       "longitude": 0.0, "latitude": 0.0,
       "visitor_count": 3,
       "friend_ids_here": ["uuid"],
@@ -225,6 +226,8 @@ Response — objects within **5km** (`ST_DWithin(location, point, 5000)`):
   ]
 }
 ```
+- `name` is the human-readable object name (`map_objects.name`; may be `""` for
+  unnamed OSM features). Lets the client label markers / list a place by name.
 - `visitor_count` for everyone; `friend_ids_here` computed for the caller
   (`SINTER` visitors ∩ `friends:{caller}`). **Never** return the raw visitor list.
 - `viewer_visiting` is true when the **caller** currently holds presence in this
@@ -243,6 +246,27 @@ Request: header `auth_token`. Acting user = token owner; **no user_id in body**.
 ```
 Response: the updated object shape (id, type, coords, `visitor_count`, `friend_ids_here`).
 - `VISITING` → add presence + 15-min TTL. `NOT_VISITING` → remove presence.
+
+### FriendsPresence
+Request: header `auth_token`. Acting user = token owner; **no body id**.
+`POST /v1/map/friends-presence` with an empty body `{}`.
+Response — the caller's friends who are **currently on a walk** (hold a live
+`presence:{friend}` key) and where each of them is:
+```json
+{
+  "code": 0, "message": "string",
+  "friends": [
+    { "user_id": "uuid", "object_id": "uuid", "object_name": "string",
+      "latitude": 0.0, "longitude": 0.0 }
+  ]
+}
+```
+- Enumerates `friends:{caller}` (owned by Profiles, read-only here); for each
+  friend that holds `presence:{friend}` it resolves the object row and emits its
+  id, name, and coords. Friends with no live presence — or whose object row has
+  disappeared — are omitted, so the list reflects only friends actually out now.
+- Backs the "friends on the map" widget: click a friend → center on `object_id`'s
+  coords and open its popup. `on_walk` is derived, never stored.
 
 ---
 

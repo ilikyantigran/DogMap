@@ -44,6 +44,10 @@ type fakePresence struct {
 	friends map[string][]string // object -> friend ids for the caller
 	current map[string]string   // user -> object the user is visiting
 
+	// friendSet is friends:{caller}: caller -> friend ids. Used by FriendsPresence.
+	friendSet    map[string][]string
+	friendSetErr error
+
 	markedVisiting    []markCall
 	markedNotVisiting []markCall
 }
@@ -85,6 +89,13 @@ func (f *fakePresence) VisitorCount(_ context.Context, object string) (int, erro
 
 func (f *fakePresence) FriendIDsHere(_ context.Context, object, _ string) ([]string, error) {
 	return f.friends[object], nil
+}
+
+func (f *fakePresence) Friends(_ context.Context, caller string) ([]string, error) {
+	if f.friendSetErr != nil {
+		return nil, f.friendSetErr
+	}
+	return f.friendSet[caller], nil
 }
 
 type fakeAuth struct {
@@ -286,6 +297,128 @@ func TestChangeStatus_RequiresToken(t *testing.T) {
 		&mapv1.ChangeMapObjectStatusRequest{Id: "park", Action: mapv1.PresenceAction_VISITING})
 	if status.Code(err) != codes.Unauthenticated {
 		t.Fatalf("code = %v, want Unauthenticated", status.Code(err))
+	}
+}
+
+// LoadMap surfaces the object name from the postgres row into the client shape.
+func TestLoadMap_SurfacesName(t *testing.T) {
+	objs := &fakeObjects{within: []postgres.Object{
+		{ID: "obj-1", ObjectType: "PARK", Name: "Central Dog Park"},
+	}}
+	auth := &fakeAuth{byToken: map[string]string{"tok": "u"}}
+	s := newTestServer(objs, &fakePresence{}, auth)
+
+	resp, err := s.LoadMap(ctxWithToken("tok"), &mapv1.LoadMapRequest{})
+	if err != nil {
+		t.Fatalf("LoadMap: %v", err)
+	}
+	if resp.Objects[0].Name != "Central Dog Park" {
+		t.Errorf("name = %q, want %q", resp.Objects[0].Name, "Central Dog Park")
+	}
+}
+
+// --- FriendsPresence -----------------------------------------------------
+
+// The happy path: a friend with a live presence key is reported with the object's
+// id, name, and coordinates. The acting user comes from the token.
+func TestFriendsPresence_ReturnsFriendsOnAWalk(t *testing.T) {
+	objs := &fakeObjects{byID: map[string]postgres.Object{
+		"park": {ID: "park", ObjectType: "DOG_PARK", Name: "Riverside", Longitude: 10, Latitude: 20},
+	}}
+	pres := &fakePresence{
+		friendSet: map[string][]string{"caller": {"friend-1"}},
+		current:   map[string]string{"friend-1": "park"},
+	}
+	auth := &fakeAuth{byToken: map[string]string{"tok": "caller"}}
+	s := newTestServer(objs, pres, auth)
+
+	resp, err := s.FriendsPresence(ctxWithToken("tok"), &mapv1.FriendsPresenceRequest{})
+	if err != nil {
+		t.Fatalf("FriendsPresence: %v", err)
+	}
+	if len(resp.Friends) != 1 {
+		t.Fatalf("friends = %d, want 1: %+v", len(resp.Friends), resp.Friends)
+	}
+	got := resp.Friends[0]
+	if got.UserId != "friend-1" || got.ObjectId != "park" || got.ObjectName != "Riverside" {
+		t.Errorf("friend presence = %+v, want friend-1@park (Riverside)", got)
+	}
+	if got.Latitude != 20 || got.Longitude != 10 {
+		t.Errorf("coords = (%v,%v), want (20,10)", got.Latitude, got.Longitude)
+	}
+}
+
+// Friends without a live presence key are not on a walk and must be omitted.
+func TestFriendsPresence_SkipsFriendsWithoutPresence(t *testing.T) {
+	objs := &fakeObjects{byID: map[string]postgres.Object{
+		"park": {ID: "park", ObjectType: "PARK", Name: "Green"},
+	}}
+	pres := &fakePresence{
+		friendSet: map[string][]string{"caller": {"walking", "idle"}},
+		current:   map[string]string{"walking": "park"}, // "idle" has no presence
+	}
+	auth := &fakeAuth{byToken: map[string]string{"tok": "caller"}}
+	s := newTestServer(objs, pres, auth)
+
+	resp, err := s.FriendsPresence(ctxWithToken("tok"), &mapv1.FriendsPresenceRequest{})
+	if err != nil {
+		t.Fatalf("FriendsPresence: %v", err)
+	}
+	if len(resp.Friends) != 1 || resp.Friends[0].UserId != "walking" {
+		t.Errorf("friends = %+v, want only 'walking'", resp.Friends)
+	}
+}
+
+// A friend whose object row has disappeared is skipped, not emitted as a dangling
+// pin.
+func TestFriendsPresence_SkipsMissingObject(t *testing.T) {
+	objs := &fakeObjects{byID: map[string]postgres.Object{}} // no rows
+	pres := &fakePresence{
+		friendSet: map[string][]string{"caller": {"friend-1"}},
+		current:   map[string]string{"friend-1": "gone-object"},
+	}
+	auth := &fakeAuth{byToken: map[string]string{"tok": "caller"}}
+	s := newTestServer(objs, pres, auth)
+
+	resp, err := s.FriendsPresence(ctxWithToken("tok"), &mapv1.FriendsPresenceRequest{})
+	if err != nil {
+		t.Fatalf("FriendsPresence: %v", err)
+	}
+	if len(resp.Friends) != 0 {
+		t.Errorf("friends = %+v, want empty (object gone)", resp.Friends)
+	}
+}
+
+// No friends at all -> empty list, code 0 (not an error).
+func TestFriendsPresence_NoFriends(t *testing.T) {
+	auth := &fakeAuth{byToken: map[string]string{"tok": "caller"}}
+	s := newTestServer(&fakeObjects{}, &fakePresence{}, auth)
+
+	resp, err := s.FriendsPresence(ctxWithToken("tok"), &mapv1.FriendsPresenceRequest{})
+	if err != nil {
+		t.Fatalf("FriendsPresence: %v", err)
+	}
+	if len(resp.Friends) != 0 || resp.Code != 0 {
+		t.Errorf("want empty list + code 0, got %+v code=%d", resp.Friends, resp.Code)
+	}
+}
+
+func TestFriendsPresence_RequiresToken(t *testing.T) {
+	s := newTestServer(&fakeObjects{}, &fakePresence{}, &fakeAuth{})
+	_, err := s.FriendsPresence(context.Background(), &mapv1.FriendsPresenceRequest{})
+	if status.Code(err) != codes.Unauthenticated {
+		t.Fatalf("no token: code = %v, want Unauthenticated", status.Code(err))
+	}
+}
+
+func TestFriendsPresence_FriendSetErrorMapsToInternal(t *testing.T) {
+	pres := &fakePresence{friendSetErr: errors.New("valkey down")}
+	auth := &fakeAuth{byToken: map[string]string{"tok": "caller"}}
+	s := newTestServer(&fakeObjects{}, pres, auth)
+
+	_, err := s.FriendsPresence(ctxWithToken("tok"), &mapv1.FriendsPresenceRequest{})
+	if status.Code(err) != codes.Internal {
+		t.Fatalf("code = %v, want Internal", status.Code(err))
 	}
 }
 
