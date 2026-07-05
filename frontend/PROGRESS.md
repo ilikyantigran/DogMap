@@ -107,3 +107,6 @@ _2026-07-05._ Frontend slice; `npm test` (32) + `npm run build` green.
   the doc) — flag to backend.
 - Frontend placed at repo-top-level `frontend/` per task instruction (the agent doc
   says `Frontend/WebApplication/`; explicit task instruction overrode it).
+- release/friend-status: friendsStore fetches Map FriendsPresence in refresh()
+  (best-effort) + `presenceByUser` getter; FriendsPanel shows friends-only
+  "🐾 on a walk at <object>" linking to the map object. +2 store tests (56 total).

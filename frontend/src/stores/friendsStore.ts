@@ -3,6 +3,8 @@ import { api } from '@/api'
 import { createPoller, type Poller } from '@/lib/poller'
 import { FRIENDS_REFRESH_MS } from '@/config'
 import type {
+  FriendPresence,
+  FriendsPresenceResponse,
   FriendSummary,
   IncomingRequest,
   ListFriendsResponse,
@@ -23,6 +25,8 @@ interface FriendsState {
   loading: boolean
   // Result of the "find friend by login" lookup (reduced profile for a stranger).
   lookupResult: UserInfo | null
+  // Which friends are currently on a walk + where (Map FriendsPresence).
+  presence: FriendPresence[]
 }
 
 // Poller lives outside reactive state (so Pinia doesn't proxy it) and is keyed by
@@ -36,7 +40,16 @@ export const useFriendsStore = defineStore('friends', {
     outgoing: [],
     loading: false,
     lookupResult: null,
+    presence: [],
   }),
+  getters: {
+    // user_id -> live presence, for O(1) lookup per friend row.
+    presenceByUser: (state): Record<string, FriendPresence> => {
+      const m: Record<string, FriendPresence> = {}
+      for (const p of state.presence) m[p.user_id] = p
+      return m
+    },
+  },
   actions: {
     /** One refresh of the friend graph. Also the poll tick. */
     async refresh(): Promise<void> {
@@ -46,9 +59,22 @@ export const useFriendsStore = defineStore('friends', {
         this.friends = res.friends ?? []
         this.incoming = res.incoming_requests ?? []
         this.outgoing = res.outgoing_requests ?? []
+        // Live on-walk status for friends. Friends-only by construction — the Map
+        // endpoint only returns the caller's friends. Best-effort so a transient
+        // presence failure never blanks the friends list.
+        await this.fetchPresence().catch(() => {})
       } finally {
         this.loading = false
       }
+    },
+
+    /** Which friends are currently on a walk and where (Map FriendsPresence). */
+    async fetchPresence(): Promise<void> {
+      const res = await api.post<FriendsPresenceResponse>(
+        '/v1/map/friends-presence',
+        {},
+      )
+      this.presence = res.friends ?? []
     },
 
     /** Start polling the friend graph while the Profile page is active. */
