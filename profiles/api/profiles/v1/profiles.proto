@@ -184,6 +184,7 @@ message IncomingRequest {
 message OutgoingRequest {
   string to_user_id = 1;
   string friend_request_id = 2;
+  string to_login = 3; // nickname of the target, so the UI shows a name not a UUID
 }
 
 message ListFriendsResponse {

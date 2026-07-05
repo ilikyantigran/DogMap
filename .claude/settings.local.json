@@ -77,7 +77,20 @@
       "Bash(awk '/enum FriendStatus/{f=1} f{print} f&&/}/{exit}' profiles/api/profiles/v1/profiles.proto)",
       "Bash(cp -r ../map/vendor-proto ./vendor-proto)",
       "Bash(sed -i '' '/enum FriendStatus/,/}/ s/FRIEND_STATUS_//g' api/profiles/v1/profiles.proto)",
-      "Bash(awk '/enum FriendStatus/{f=1} f{print} f&&/}/{exit}' api/profiles/v1/profiles.proto)"
+      "Bash(awk '/enum FriendStatus/{f=1} f{print} f&&/}/{exit}' api/profiles/v1/profiles.proto)",
+      "Read(//Users/a1234/**)",
+      "Bash(timeout 8 ssh -T -o StrictHostKeyChecking=accept-new -o BatchMode=yes git@github.com)",
+      "Bash(git remote *)",
+      "Bash(git push *)",
+      "Bash(git fetch *)",
+      "Bash(python3 -)",
+      "Bash(git switch *)",
+      "Bash(gh auth *)",
+      "Bash(gh pr *)",
+      "Bash(gh api repos/ilikyantigran/DogMap/pulls/2/reviews -f event=COMMENT -f 'body= *)",
+      "Bash(python3 - /private/tmp/claude-502/-Users-a1234-MyProjectsCrossPlatform-DogMap/61e75eaa-ceb7-4dbf-a10b-55972c7ba2a8/scratchpad/review.json /private/tmp/claude-502/-Users-a1234-MyProjectsCrossPlatform-DogMap/61e75eaa-ceb7-4dbf-a10b-55972c7ba2a8/scratchpad/body.txt /private/tmp/claude-502/-Users-a1234-MyProjectsCrossPlatform-DogMap/61e75eaa-ceb7-4dbf-a10b-55972c7ba2a8/scratchpad/review.final.json)",
+      "Bash(gh api *)",
+      "Bash(git pull *)"
     ]
   }
 }

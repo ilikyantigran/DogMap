@@ -523,6 +523,10 @@
         },
         "friendRequestId": {
           "type": "string"
+        },
+        "toLogin": {
+          "type": "string",
+          "title": "nickname of the target, so the UI shows a name not a UUID"
         }
       }
     },

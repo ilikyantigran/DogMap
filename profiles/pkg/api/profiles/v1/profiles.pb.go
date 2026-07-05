@@ -781,6 +781,7 @@ type OutgoingRequest struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	ToUserId        string                 `protobuf:"bytes,1,opt,name=to_user_id,json=toUserId,proto3" json:"to_user_id,omitempty"`
 	FriendRequestId string                 `protobuf:"bytes,2,opt,name=friend_request_id,json=friendRequestId,proto3" json:"friend_request_id,omitempty"`
+	ToLogin         string                 `protobuf:"bytes,3,opt,name=to_login,json=toLogin,proto3" json:"to_login,omitempty"` // nickname of the target, so the UI shows a name not a UUID
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -825,6 +826,13 @@ func (x *OutgoingRequest) GetToUserId() string {
 func (x *OutgoingRequest) GetFriendRequestId() string {
 	if x != nil {
 		return x.FriendRequestId
+	}
+	return ""
+}
+
+func (x *OutgoingRequest) GetToLogin() string {
+	if x != nil {
+		return x.ToLogin
 	}
 	return ""
 }
@@ -1119,11 +1127,12 @@ const file_profiles_v1_profiles_proto_rawDesc = "" +
 	"fromUserId\x12\x1d\n" +
 	"\n" +
 	"from_login\x18\x02 \x01(\tR\tfromLogin\x12*\n" +
-	"\x11friend_request_id\x18\x03 \x01(\tR\x0ffriendRequestId\"[\n" +
+	"\x11friend_request_id\x18\x03 \x01(\tR\x0ffriendRequestId\"v\n" +
 	"\x0fOutgoingRequest\x12\x1c\n" +
 	"\n" +
 	"to_user_id\x18\x01 \x01(\tR\btoUserId\x12*\n" +
-	"\x11friend_request_id\x18\x02 \x01(\tR\x0ffriendRequestId\"\x88\x02\n" +
+	"\x11friend_request_id\x18\x02 \x01(\tR\x0ffriendRequestId\x12\x19\n" +
+	"\bto_login\x18\x03 \x01(\tR\atoLogin\"\x88\x02\n" +
 	"\x13ListFriendsResponse\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12-\n" +

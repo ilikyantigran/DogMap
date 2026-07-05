@@ -199,14 +199,18 @@ func (f *fakeStore) IncomingPending(_ context.Context, userID string) ([]pg.Frie
 	return out, logins, nil
 }
 
-func (f *fakeStore) OutgoingPending(_ context.Context, userID string) ([]pg.FriendRequest, error) {
+func (f *fakeStore) OutgoingPending(_ context.Context, userID string) ([]pg.FriendRequest, map[string]string, error) {
 	var out []pg.FriendRequest
+	logins := map[string]string{}
 	for _, r := range f.requests {
 		if r.Status == "PENDING" && r.FromUserID == userID {
 			out = append(out, *r)
+			if p, ok := f.profiles[r.ToUserID]; ok {
+				logins[r.ToUserID] = p.Login
+			}
 		}
 	}
-	return out, nil
+	return out, logins, nil
 }
 
 // fakeCache resolves a fixed token→user map and records friends:{uid} writes.
@@ -498,6 +502,28 @@ func TestListFriends_ShapesIncomingOutgoing(t *testing.T) {
 	}
 	if len(resp.OutgoingRequests) != 1 || resp.OutgoingRequests[0].ToUserId != "u3" {
 		t.Fatalf("outgoing wrong: %+v", resp.OutgoingRequests)
+	}
+	// to_login lets the UI show a nickname instead of a UUID.
+	if resp.OutgoingRequests[0].ToLogin != "Test3" {
+		t.Fatalf("outgoing to_login = %q, want Test3", resp.OutgoingRequests[0].ToLogin)
+	}
+}
+
+func TestListFriends_OutgoingToProfilelessTargetTolerated(t *testing.T) {
+	s, store, _ := fixture()
+	// Outgoing request to a user id with NO profiles row (to_user_id has no FK).
+	// The LEFT JOIN must tolerate it: empty to_login, and the whole call still OK.
+	store.requests["out"] = &pg.FriendRequest{ID: "out", FromUserID: "u1", ToUserID: "ghost", Status: "PENDING"}
+
+	resp, err := s.ListFriends(ctxWithToken("tok1"), &profilesv1.ListFriendsRequest{})
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	if resp.Code != codeOK {
+		t.Fatalf("code = %d, want OK (a dangling target must not fail ListFriends)", resp.Code)
+	}
+	if len(resp.OutgoingRequests) != 1 || resp.OutgoingRequests[0].ToUserId != "ghost" || resp.OutgoingRequests[0].ToLogin != "" {
+		t.Fatalf("outgoing dangling wrong: %+v", resp.OutgoingRequests)
 	}
 }
 
