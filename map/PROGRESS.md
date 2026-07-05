@@ -9,9 +9,10 @@ Building the "friends on the map" vertical slice: Map backend (MapObject.name +
 new FriendsPresence RPC) AND the frontend FriendsOnMap widget. This branch is the
 shared foundation Branch 6 (friend status) consumes.
 
-STATUS: implementation COMPLETE and green. Backend (map): `go build/vet/test ./...`
-pass; `make generate` reproducible (identical output across two runs). Frontend:
-`npm test` (33) + `npm run build` pass. Next action: commit, push branch, open PR.
+STATUS: DELIVERED. PR #7 open (https://github.com/ilikyantigran/DogMap/pull/7),
+awaiting owner review/merge — do NOT run pr-reviewer or merge (per task). Backend
+(map): `go build/vet/test ./...` pass; `make generate` reproducible. Frontend:
+`npm test` (33) + `npm run build` pass. Commit d120d88 on release/map-friends-widget.
 
 ## Plan (this branch)
 
