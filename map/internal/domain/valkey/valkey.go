@@ -152,6 +152,19 @@ func (s *Store) FriendIDsHere(ctx context.Context, object, caller string) ([]str
 	return ids, nil
 }
 
+// Friends returns SMEMBERS friends:{caller} — the caller's cached friend set that
+// Profiles owns and writes. Map only READS it (here and via SINTER for privacy
+// filtering). Used by FriendsPresence to enumerate which friends to check for a
+// live presence key.
+func (s *Store) Friends(ctx context.Context, caller string) ([]string, error) {
+	smembers := s.client.B().Smembers().Key(friendsKey(caller)).Build()
+	ids, err := s.client.Do(ctx, smembers).AsStrSlice()
+	if err != nil {
+		return nil, fmt.Errorf("smembers friends: %w", err)
+	}
+	return ids, nil
+}
+
 // Visitors returns the raw visitor set for an object. INTERNAL USE ONLY (the
 // janitor reconciles it); it must NEVER be surfaced to a client.
 func (s *Store) Visitors(ctx context.Context, object string) ([]string, error) {

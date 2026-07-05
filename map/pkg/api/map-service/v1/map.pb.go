@@ -140,8 +140,12 @@ type MapObject struct {
 	// object (derived from presence:{caller}). Lets the client render the correct
 	// toggle state and avoid re-marking after a page refresh.
 	ViewerVisiting bool `protobuf:"varint,7,opt,name=viewer_visiting,json=viewerVisiting,proto3" json:"viewer_visiting,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// name is the human-readable object name (from map_objects.name; may be empty
+	// for unnamed OSM features). Lets the client label markers and the friends
+	// widget without a second lookup.
+	Name          string `protobuf:"bytes,8,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *MapObject) Reset() {
@@ -221,6 +225,13 @@ func (x *MapObject) GetViewerVisiting() bool {
 		return x.ViewerVisiting
 	}
 	return false
+}
+
+func (x *MapObject) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
 }
 
 type LoadMapRequest struct {
@@ -491,11 +502,186 @@ func (x *MapObjectResponse) GetObject() *MapObject {
 	return nil
 }
 
+// FriendsPresenceRequest carries no fields: the acting user is the token owner
+// (header auth_token), never the body.
+type FriendsPresenceRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FriendsPresenceRequest) Reset() {
+	*x = FriendsPresenceRequest{}
+	mi := &file_map_service_v1_map_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FriendsPresenceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FriendsPresenceRequest) ProtoMessage() {}
+
+func (x *FriendsPresenceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_map_service_v1_map_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FriendsPresenceRequest.ProtoReflect.Descriptor instead.
+func (*FriendsPresenceRequest) Descriptor() ([]byte, []int) {
+	return file_map_service_v1_map_proto_rawDescGZIP(), []int{6}
+}
+
+// FriendPresence is one friend currently on a walk and where they are.
+type FriendPresence struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	ObjectId      string                 `protobuf:"bytes,2,opt,name=object_id,json=objectId,proto3" json:"object_id,omitempty"`
+	ObjectName    string                 `protobuf:"bytes,3,opt,name=object_name,json=objectName,proto3" json:"object_name,omitempty"`
+	Latitude      float64                `protobuf:"fixed64,4,opt,name=latitude,proto3" json:"latitude,omitempty"`
+	Longitude     float64                `protobuf:"fixed64,5,opt,name=longitude,proto3" json:"longitude,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FriendPresence) Reset() {
+	*x = FriendPresence{}
+	mi := &file_map_service_v1_map_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FriendPresence) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FriendPresence) ProtoMessage() {}
+
+func (x *FriendPresence) ProtoReflect() protoreflect.Message {
+	mi := &file_map_service_v1_map_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FriendPresence.ProtoReflect.Descriptor instead.
+func (*FriendPresence) Descriptor() ([]byte, []int) {
+	return file_map_service_v1_map_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *FriendPresence) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *FriendPresence) GetObjectId() string {
+	if x != nil {
+		return x.ObjectId
+	}
+	return ""
+}
+
+func (x *FriendPresence) GetObjectName() string {
+	if x != nil {
+		return x.ObjectName
+	}
+	return ""
+}
+
+func (x *FriendPresence) GetLatitude() float64 {
+	if x != nil {
+		return x.Latitude
+	}
+	return 0
+}
+
+func (x *FriendPresence) GetLongitude() float64 {
+	if x != nil {
+		return x.Longitude
+	}
+	return 0
+}
+
+type FriendsPresenceResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Code          int32                  `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	Friends       []*FriendPresence      `protobuf:"bytes,3,rep,name=friends,proto3" json:"friends,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FriendsPresenceResponse) Reset() {
+	*x = FriendsPresenceResponse{}
+	mi := &file_map_service_v1_map_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FriendsPresenceResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FriendsPresenceResponse) ProtoMessage() {}
+
+func (x *FriendsPresenceResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_map_service_v1_map_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FriendsPresenceResponse.ProtoReflect.Descriptor instead.
+func (*FriendsPresenceResponse) Descriptor() ([]byte, []int) {
+	return file_map_service_v1_map_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *FriendsPresenceResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *FriendsPresenceResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *FriendsPresenceResponse) GetFriends() []*FriendPresence {
+	if x != nil {
+		return x.Friends
+	}
+	return nil
+}
+
 var File_map_service_v1_map_proto protoreflect.FileDescriptor
 
 const file_map_service_v1_map_proto_rawDesc = "" +
 	"\n" +
-	"\x18map-service/v1/map.proto\x12\x06map.v1\x1a\x17validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\"\x80\x02\n" +
+	"\x18map-service/v1/map.proto\x12\x06map.v1\x1a\x17validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\"\x94\x02\n" +
 	"\tMapObject\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x123\n" +
 	"\vobject_type\x18\x02 \x01(\x0e2\x12.map.v1.ObjectTypeR\n" +
@@ -504,7 +690,8 @@ const file_map_service_v1_map_proto_rawDesc = "" +
 	"\blatitude\x18\x04 \x01(\x01R\blatitude\x12#\n" +
 	"\rvisitor_count\x18\x05 \x01(\rR\fvisitorCount\x12&\n" +
 	"\x0ffriend_ids_here\x18\x06 \x03(\tR\rfriendIdsHere\x12'\n" +
-	"\x0fviewer_visiting\x18\a \x01(\bR\x0eviewerVisiting\"|\n" +
+	"\x0fviewer_visiting\x18\a \x01(\bR\x0eviewerVisiting\x12\x12\n" +
+	"\x04name\x18\b \x01(\tR\x04name\"|\n" +
 	"\x0eLoadMapRequest\x125\n" +
 	"\tlongitude\x18\x01 \x01(\x01B\x17\xfaB\x14\x12\x12\x19\x00\x00\x00\x00\x00\x80f@)\x00\x00\x00\x00\x00\x80f\xc0R\tlongitude\x123\n" +
 	"\blatitude\x18\x02 \x01(\x01B\x17\xfaB\x14\x12\x12\x19\x00\x00\x00\x00\x00\x80V@)\x00\x00\x00\x00\x00\x80V\xc0R\blatitude\"l\n" +
@@ -521,7 +708,19 @@ const file_map_service_v1_map_proto_rawDesc = "" +
 	"\x11MapObjectResponse\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12)\n" +
-	"\x06object\x18\x03 \x01(\v2\x11.map.v1.MapObjectR\x06object*P\n" +
+	"\x06object\x18\x03 \x01(\v2\x11.map.v1.MapObjectR\x06object\"\x18\n" +
+	"\x16FriendsPresenceRequest\"\xa1\x01\n" +
+	"\x0eFriendPresence\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1b\n" +
+	"\tobject_id\x18\x02 \x01(\tR\bobjectId\x12\x1f\n" +
+	"\vobject_name\x18\x03 \x01(\tR\n" +
+	"objectName\x12\x1a\n" +
+	"\blatitude\x18\x04 \x01(\x01R\blatitude\x12\x1c\n" +
+	"\tlongitude\x18\x05 \x01(\x01R\tlongitude\"y\n" +
+	"\x17FriendsPresenceResponse\x12\x12\n" +
+	"\x04code\x18\x01 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x120\n" +
+	"\afriends\x18\x03 \x03(\v2\x16.map.v1.FriendPresenceR\afriends*P\n" +
 	"\n" +
 	"ObjectType\x12\x1b\n" +
 	"\x17OBJECT_TYPE_UNSPECIFIED\x10\x00\x12\b\n" +
@@ -531,12 +730,13 @@ const file_map_service_v1_map_proto_rawDesc = "" +
 	"\x0ePresenceAction\x12\x1f\n" +
 	"\x1bPRESENCE_ACTION_UNSPECIFIED\x10\x00\x12\f\n" +
 	"\bVISITING\x10\x01\x12\x10\n" +
-	"\fNOT_VISITING\x10\x022\xb9\x02\n" +
+	"\fNOT_VISITING\x10\x022\xb2\x03\n" +
 	"\n" +
 	"MapService\x12S\n" +
 	"\aLoadMap\x12\x16.map.v1.LoadMapRequest\x1a\x17.map.v1.LoadMapResponse\"\x17\x82\xd3\xe4\x93\x02\x11:\x01*\"\f/v1/map/load\x12a\n" +
 	"\fGetMapObject\x12\x1b.map.v1.GetMapObjectRequest\x1a\x19.map.v1.MapObjectResponse\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/v1/map/object\x12s\n" +
-	"\x15ChangeMapObjectStatus\x12$.map.v1.ChangeMapObjectStatusRequest\x1a\x19.map.v1.MapObjectResponse\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/v1/map/statusB*Z(map-service/pkg/api/map-service/v1;mapv1b\x06proto3"
+	"\x15ChangeMapObjectStatus\x12$.map.v1.ChangeMapObjectStatusRequest\x1a\x19.map.v1.MapObjectResponse\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/v1/map/status\x12w\n" +
+	"\x0fFriendsPresence\x12\x1e.map.v1.FriendsPresenceRequest\x1a\x1f.map.v1.FriendsPresenceResponse\"#\x82\xd3\xe4\x93\x02\x1d:\x01*\"\x18/v1/map/friends-presenceB*Z(map-service/pkg/api/map-service/v1;mapv1b\x06proto3"
 
 var (
 	file_map_service_v1_map_proto_rawDescOnce sync.Once
@@ -551,7 +751,7 @@ func file_map_service_v1_map_proto_rawDescGZIP() []byte {
 }
 
 var file_map_service_v1_map_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_map_service_v1_map_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_map_service_v1_map_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_map_service_v1_map_proto_goTypes = []any{
 	(ObjectType)(0),                      // 0: map.v1.ObjectType
 	(PresenceAction)(0),                  // 1: map.v1.PresenceAction
@@ -561,23 +761,29 @@ var file_map_service_v1_map_proto_goTypes = []any{
 	(*GetMapObjectRequest)(nil),          // 5: map.v1.GetMapObjectRequest
 	(*ChangeMapObjectStatusRequest)(nil), // 6: map.v1.ChangeMapObjectStatusRequest
 	(*MapObjectResponse)(nil),            // 7: map.v1.MapObjectResponse
+	(*FriendsPresenceRequest)(nil),       // 8: map.v1.FriendsPresenceRequest
+	(*FriendPresence)(nil),               // 9: map.v1.FriendPresence
+	(*FriendsPresenceResponse)(nil),      // 10: map.v1.FriendsPresenceResponse
 }
 var file_map_service_v1_map_proto_depIdxs = []int32{
-	0, // 0: map.v1.MapObject.object_type:type_name -> map.v1.ObjectType
-	2, // 1: map.v1.LoadMapResponse.objects:type_name -> map.v1.MapObject
-	1, // 2: map.v1.ChangeMapObjectStatusRequest.action:type_name -> map.v1.PresenceAction
-	2, // 3: map.v1.MapObjectResponse.object:type_name -> map.v1.MapObject
-	3, // 4: map.v1.MapService.LoadMap:input_type -> map.v1.LoadMapRequest
-	5, // 5: map.v1.MapService.GetMapObject:input_type -> map.v1.GetMapObjectRequest
-	6, // 6: map.v1.MapService.ChangeMapObjectStatus:input_type -> map.v1.ChangeMapObjectStatusRequest
-	4, // 7: map.v1.MapService.LoadMap:output_type -> map.v1.LoadMapResponse
-	7, // 8: map.v1.MapService.GetMapObject:output_type -> map.v1.MapObjectResponse
-	7, // 9: map.v1.MapService.ChangeMapObjectStatus:output_type -> map.v1.MapObjectResponse
-	7, // [7:10] is the sub-list for method output_type
-	4, // [4:7] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	0,  // 0: map.v1.MapObject.object_type:type_name -> map.v1.ObjectType
+	2,  // 1: map.v1.LoadMapResponse.objects:type_name -> map.v1.MapObject
+	1,  // 2: map.v1.ChangeMapObjectStatusRequest.action:type_name -> map.v1.PresenceAction
+	2,  // 3: map.v1.MapObjectResponse.object:type_name -> map.v1.MapObject
+	9,  // 4: map.v1.FriendsPresenceResponse.friends:type_name -> map.v1.FriendPresence
+	3,  // 5: map.v1.MapService.LoadMap:input_type -> map.v1.LoadMapRequest
+	5,  // 6: map.v1.MapService.GetMapObject:input_type -> map.v1.GetMapObjectRequest
+	6,  // 7: map.v1.MapService.ChangeMapObjectStatus:input_type -> map.v1.ChangeMapObjectStatusRequest
+	8,  // 8: map.v1.MapService.FriendsPresence:input_type -> map.v1.FriendsPresenceRequest
+	4,  // 9: map.v1.MapService.LoadMap:output_type -> map.v1.LoadMapResponse
+	7,  // 10: map.v1.MapService.GetMapObject:output_type -> map.v1.MapObjectResponse
+	7,  // 11: map.v1.MapService.ChangeMapObjectStatus:output_type -> map.v1.MapObjectResponse
+	10, // 12: map.v1.MapService.FriendsPresence:output_type -> map.v1.FriendsPresenceResponse
+	9,  // [9:13] is the sub-list for method output_type
+	5,  // [5:9] is the sub-list for method input_type
+	5,  // [5:5] is the sub-list for extension type_name
+	5,  // [5:5] is the sub-list for extension extendee
+	0,  // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_map_service_v1_map_proto_init() }
@@ -591,7 +797,7 @@ func file_map_service_v1_map_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_map_service_v1_map_proto_rawDesc), len(file_map_service_v1_map_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   6,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

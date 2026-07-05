@@ -42,6 +42,18 @@ service MapService {
       body: "*"
     };
   }
+
+  // FriendsPresence returns, for the caller's friends who currently hold presence
+  // (a live presence:{friend} key), where each of them is: the object id, its
+  // name, and its coordinates. The caller is the token owner (no body id) and the
+  // friend set is friends:{caller} (owned by Profiles, read-only here). Friends
+  // with no live presence never appear — "on a walk" is derived, not stored.
+  rpc FriendsPresence(FriendsPresenceRequest) returns (FriendsPresenceResponse) {
+    option (google.api.http) = {
+      post: "/v1/map/friends-presence"
+      body: "*"
+    };
+  }
 }
 
 enum ObjectType {
@@ -72,6 +84,10 @@ message MapObject {
   // object (derived from presence:{caller}). Lets the client render the correct
   // toggle state and avoid re-marking after a page refresh.
   bool viewer_visiting = 7;
+  // name is the human-readable object name (from map_objects.name; may be empty
+  // for unnamed OSM features). Lets the client label markers and the friends
+  // widget without a second lookup.
+  string name = 8;
 }
 
 message LoadMapRequest {
@@ -98,4 +114,23 @@ message MapObjectResponse {
   int32 code = 1;
   string message = 2;
   MapObject object = 3;
+}
+
+// FriendsPresenceRequest carries no fields: the acting user is the token owner
+// (header auth_token), never the body.
+message FriendsPresenceRequest {}
+
+// FriendPresence is one friend currently on a walk and where they are.
+message FriendPresence {
+  string user_id = 1;
+  string object_id = 2;
+  string object_name = 3;
+  double latitude = 4;
+  double longitude = 5;
+}
+
+message FriendsPresenceResponse {
+  int32 code = 1;
+  string message = 2;
+  repeated FriendPresence friends = 3;
 }

@@ -3,56 +3,59 @@
 Terse build log. Source of truth: `../Docs/02-Backend.md` (Service: Map, Presence
 architecture, data model) + `../Docs/01-Idea.md` (locked decisions, Path 1).
 
-## Done
-- Scaffold from house-style templates: `cmd/map`, `configs/{local,docker}.yaml`,
-  `internal/{app,domain,infra,presence}`, `pkg/api`, `vendor-proto`, Dockerfile,
-  Makefile. Module `map-service`, Go 1.26. gRPC :8084 / HTTP :8085.
-- Proto contract `api/map-service/v1/map.proto` → LoadMap, GetMapObject,
-  ChangeMapObjectStatus + REST gateway annotations. `make generate` clean;
-  swagger embedded in `internal/infra/docs`.
-- Migration `migrations/0001_map_schema.{up,down}.sql`: `map.map_objects`
-  (id uuid, object_type CHECK, name, `GEOGRAPHY(Point,4326)`, source_osm_id) +
-  GiST index `map_objects_location_gix`. PostGIS extension. No cross-schema FKs.
-- Postgres store (`internal/domain/postgres`): `ObjectsWithin` (ST_DWithin 5km via
-  the geography GiST index), `ObjectByID`, `UpsertOSM` (idempotent, keyed by
-  source_osm_id).
-- Valkey store (`internal/domain/valkey`): presence keys per doc — MarkVisiting
-  (SADD + SET EX 900, evicts stale prior object), MarkNotVisiting (SREM + DEL),
-  Heartbeat (TTL refresh + re-SADD), CurrentObject, VisitorCount (SCARD),
-  FriendIDsHere (SINTER visitors ∩ friends:{caller}), plus janitor helpers and
-  `UserIDForToken` (reads session:{token}, read-only — Auth owns it).
-- Server (`internal/app/map_server.go`): 3 RPCs. Acting user from `auth_token`
-  header → session lookup, NEVER from body. Privacy view = count for all +
-  friend_ids_here for caller; raw visitor set never returned. code/message
-  envelope; gRPC status codes for errors.
-- Presence janitor (`internal/presence`): sweeps object:*:visitors, drops members
-  whose presence:{user} key expired. Polling MVP; keyspace-notif variant noted.
-- App wiring (`internal/app/app.go`): telemetry → stores → server → janitor
-  goroutine → gRPC + gateway (forwards auth_token) + /metrics + /swagger.
-  Graceful shutdown drains the janitor.
-- OSM seed job STUB (`cmd/seed-osm`): wired to UpsertOSM; fetch is a documented
-  TODO. Safe no-op until Overpass fetch lands.
-- Tests (test-first, all green): server unit tests (fakes) cover Path 1 steps 4-6
-  (0→1→0 visitor count), privacy filtering, token-not-body identity, radius=5000
-  pass-through, auth/validation/not-found/internal error mapping; janitor tests
-  cover stale-only removal + no-op. `go vet` + `go build` + `go test ./...` clean.
-- Milestone commit `af100c1` in worktree (full scaffold + tests).
+## Current status (2026-07-04) — branch `release/map-friends-widget`
 
-## Next
-- Integration test through the transport edge against real Postgres+PostGIS and
-  Valkey (testcontainers/compose): config load → App.Run → HTTP gateway → stores.
-  Proves wiring + that the GiST/ST_DWithin query really returns 5km results.
-- Implement the OSM Overpass fetch in `cmd/seed-osm` (currently returns nil).
-- `docker build` verification with values_docker.yaml (needs Docker daemon).
-- Optional: a migration runner (`cmd/migrate`) or document applying
-  `migrations/*.sql` via the shared DB tool.
+Building the "friends on the map" vertical slice: Map backend (MapObject.name +
+new FriendsPresence RPC) AND the frontend FriendsOnMap widget. This branch is the
+shared foundation Branch 6 (friend status) consumes.
 
-## Notes / cross-service contracts (other agents must match)
-- Session: Map READS `session:{token}` (JSON `{"user_id":..,"exp":..}`) — Auth
-  must write exactly that shape/key. Header name is `auth_token`.
-- Friends: Map READS `friends:{user_id}` SET for SINTER — Profiles owns/writes it.
-  Members must be the same string UUIDs used everywhere.
+STATUS: implementation COMPLETE and green. Backend (map): `go build/vet/test ./...`
+pass; `make generate` reproducible (identical output across two runs). Frontend:
+`npm test` (33) + `npm run build` pass. Next action: commit, push branch, open PR.
+
+## Plan (this branch)
+
+Backend (map): DONE — go build/vet/test ./... green.
+1. [x] map.proto: `name=8` on MapObject; RPC FriendsPresence + messages.
+2. [x] `make generate` (reproducible — regenerated pb/gw/swagger).
+3. [x] Server.view surfaces o.Name into MapObject.Name.
+4. [x] valkey.Friends(caller) = SMEMBERS friends:{caller} (read-only).
+5. [x] Server.FriendsPresence implemented (skips no-presence + missing-object;
+       caches object lookups). Tests cover happy path, skip-no-presence,
+       skip-missing-object, no-friends, requires-token, friend-set-error->Internal,
+       plus LoadMap surfaces name.
+6. [x] Interfaces + fakes extended.
+
+Frontend: DONE — npm test (33) + npm run build green.
+7. [x] types/api.ts: `name` on MapObject; FriendPresence + FriendsPresenceResponse.
+8. [x] mapStore: friendsPresence state + fetchFriendsPresence() (folded into the
+       refresh tick, best-effort) + focusFriendObject(fp).
+9. [x] FriendsOnMap.vue widget (right-hand rail on MapPage).
+10. [x] MapPage: two-column layout, mounts FriendsOnMap.
+11. [x] mapStore specs: fetch, refresh fan-out, focus (loaded + not-loaded).
+
+Also: Docs/02-Backend.md updated — `name` in the LoadMap object shape + a new
+FriendsPresence section documenting the response contract.
+
+## Done (prior scaffold — unchanged)
+- Full Map scaffold: 3 RPCs (LoadMap/GetMapObject/ChangeMapObjectStatus), postgres
+  store (ST_DWithin 5km, GiST), valkey presence store, janitor, gateway forwarding
+  auth_token, OSM seed stub, server+janitor unit tests. See git history.
+
+## Decisions & constraints
+- FriendsPresence body is EMPTY: acting user from auth_token header, never body
+  (Docs global convention #3). Response shape (Branch 6 consumes this EXACTLY):
+  `{ code, message, friends: [{ user_id, object_id, object_name, latitude, longitude }] }`.
+- Only friends currently holding presence appear (derived from live presence:{friend}
+  key). Friends with no presence or a missing object row are silently skipped.
+- Reuses friends:{caller} SET (Profiles owns/writes; Map only READS) — same set
+  already used for SINTER privacy filtering.
+
+## Blockers / open questions
+- none.
+
+## Notes / cross-service contracts
+- Session: Map READS `session:{token}` JSON `{"user_id":..,"exp":..}`. Header `auth_token`.
+- Friends: Map READS `friends:{user_id}` SET (Profiles owns). Members = string UUIDs.
 - Presence keys owned by Map: `presence:{user_id}` (EX 900), `object:{id}:visitors`.
-  No other service should write these.
-- object_type enum: PARK | DOG_PARK | DOG_BEACH (proto + DB CHECK agree).
-- Ports 8084/8085 are Map's pick (docs don't assign) — deconflict at compose time.
+- object_type enum: PARK | DOG_PARK | DOG_BEACH.

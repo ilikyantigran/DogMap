@@ -8,6 +8,8 @@ import {
 } from '@/config'
 import type {
   ChangeMapObjectStatusRequest,
+  FriendPresence,
+  FriendsPresenceResponse,
   LoadMapRequest,
   LoadMapResponse,
   MapObject,
@@ -31,6 +33,9 @@ interface MapState {
   // point-of-interest (not GPS) — we track only which object id, never coords.
   myPresenceObjectId: string | null
   loading: boolean
+  // Friends currently on a walk and where (from FriendsPresence). Drives the
+  // FriendsOnMap widget. Only friends holding a live presence key appear.
+  friendsPresence: FriendPresence[]
 }
 
 // Timers held outside reactive state so Pinia doesn't proxy them. Keyed by store
@@ -65,6 +70,7 @@ export const useMapStore = defineStore('map', {
     selectedId: null,
     myPresenceObjectId: null,
     loading: false,
+    friendsPresence: [],
   }),
   getters: {
     selectedObject: (state): MapObject | null =>
@@ -98,6 +104,9 @@ export const useMapStore = defineStore('map', {
         this.myPresenceObjectId = here?.id ?? null
         if (this.myPresenceObjectId) this.startHeartbeat()
         else this.stopHeartbeat()
+        // Keep the FriendsOnMap widget in step with the map refresh. Best-effort:
+        // a friends-presence failure must not blank out the whole map.
+        await this.fetchFriendsPresence().catch(() => {})
       } finally {
         this.loading = false
       }
@@ -110,6 +119,38 @@ export const useMapStore = defineStore('map', {
       this.upsertObject(obj)
       if (obj.viewer_visiting) this.myPresenceObjectId = obj.id
       else if (this.myPresenceObjectId === obj.id) this.myPresenceObjectId = null
+    },
+
+    /**
+     * Fetch the caller's friends who are currently on a walk and where they are
+     * (POST /v1/map/friends-presence). Acting user is the token owner — no id is
+     * sent. Backs the FriendsOnMap widget; also a poll tick.
+     */
+    async fetchFriendsPresence(): Promise<void> {
+      const res = await api.post<FriendsPresenceResponse>(
+        '/v1/map/friends-presence',
+        {},
+      )
+      this.friendsPresence = res.friends ?? []
+    },
+
+    /**
+     * Center the map on a friend's object and open its popup. If the object isn't
+     * in the current LoadMap window (its marker doesn't exist yet), fetch it first
+     * so MapView has a marker to open — the FriendsPresence row carries the coords
+     * and object id, so we can center immediately and load the marker in parallel.
+     */
+    async focusFriendObject(friend: FriendPresence): Promise<void> {
+      this.setCenter({
+        latitude: friend.latitude,
+        longitude: friend.longitude,
+      })
+      if (!this.objects.some((o) => o.id === friend.object_id)) {
+        // Marker not loaded (friend is outside the current radius). Pull the single
+        // object so MapView renders a marker whose popup selectedId can open.
+        await this.refreshObject(friend.object_id).catch(() => {})
+      }
+      this.select(friend.object_id)
     },
 
     /** Merge an updated single object back into the list (after a status change). */

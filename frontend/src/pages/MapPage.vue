@@ -8,6 +8,7 @@ import { getCurrentPosition } from '@/lib/geolocation'
 import { useToastStore } from '@/stores/toastStore'
 import MapView from '@/components/map/MapView.vue'
 import MapLegend from '@/components/map/MapLegend.vue'
+import FriendsOnMap from '@/components/map/FriendsOnMap.vue'
 
 // Guarded Map page. Owns polling lifecycle; the store owns the intervals.
 //  - request geolocation to center LoadMap (fallback: default center + manual pan)
@@ -57,10 +58,40 @@ onUnmounted(() => {
   <div>
     <h1>Map</h1>
     <MapLegend />
-    <MapView />
-    <p v-if="isEmpty" style="color: var(--dm-muted)">
-      No dog-friendly places nearby. Try panning the map.
-    </p>
-    <p v-if="loading" style="color: var(--dm-muted)">Loading nearby places…</p>
+    <div class="map-layout">
+      <div class="map-main">
+        <MapView />
+        <p v-if="isEmpty" style="color: var(--dm-muted)">
+          No dog-friendly places nearby. Try panning the map.
+        </p>
+        <p v-if="loading" style="color: var(--dm-muted)">Loading nearby places…</p>
+      </div>
+      <!-- Right-hand rail: friends currently on a walk; click to jump to them. -->
+      <FriendsOnMap class="map-rail" />
+    </div>
   </div>
 </template>
+
+<style scoped>
+.map-layout {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+.map-main {
+  flex: 1;
+  min-width: 0;
+}
+.map-rail {
+  flex: 0 0 220px;
+}
+@media (max-width: 720px) {
+  .map-layout {
+    flex-direction: column;
+  }
+  .map-rail {
+    flex: 1;
+    width: 100%;
+  }
+}
+</style>
