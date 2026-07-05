@@ -182,7 +182,7 @@ Response:
 {
   "friends": [ { "user_id":"uuid", "login":"string", "on_walk":true, "current_object_id":"uuid|null" } ],
   "incoming_requests": [ { "from_user_id":"uuid", "from_login":"string", "friend_request_id":"uuid" } ],
-  "outgoing_requests": [ { "to_user_id":"uuid", "friend_request_id":"uuid" } ]
+  "outgoing_requests": [ { "to_user_id":"uuid", "to_login":"string", "friend_request_id":"uuid" } ]
 }
 ```
 
