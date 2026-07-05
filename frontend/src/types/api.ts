@@ -106,6 +106,7 @@ export interface IncomingRequest {
 export interface OutgoingRequest {
   to_user_id: string
   friend_request_id: string
+  to_login: string
 }
 
 export interface ListFriendsResponse extends ApiEnvelope {

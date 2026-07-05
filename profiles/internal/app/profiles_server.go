@@ -53,7 +53,7 @@ type profileStore interface {
 	FriendIDs(ctx context.Context, userID string) ([]string, error)
 	Friends(ctx context.Context, userID string) ([]pg.FriendRef, error)
 	IncomingPending(ctx context.Context, userID string) ([]pg.FriendRequest, map[string]string, error)
-	OutgoingPending(ctx context.Context, userID string) ([]pg.FriendRequest, error)
+	OutgoingPending(ctx context.Context, userID string) ([]pg.FriendRequest, map[string]string, error)
 }
 
 // friendCache is the friends:{uid} Valkey cache + session resolution.
@@ -318,7 +318,7 @@ func (s *Server) ListFriends(ctx context.Context, _ *profilesv1.ListFriendsReque
 	if err != nil {
 		return &profilesv1.ListFriendsResponse{Code: codeInternal, Message: "internal error"}, nil
 	}
-	outgoing, err := s.store.OutgoingPending(ctx, caller)
+	outgoing, outLogins, err := s.store.OutgoingPending(ctx, caller)
 	if err != nil {
 		return &profilesv1.ListFriendsResponse{Code: codeInternal, Message: "internal error"}, nil
 	}
@@ -334,8 +334,9 @@ func (s *Server) ListFriends(ctx context.Context, _ *profilesv1.ListFriendsReque
 		})
 	}
 	for _, r := range outgoing {
+		// to_login (LEFT JOIN, empty for a dangling request) → nickname not UUID.
 		resp.OutgoingRequests = append(resp.OutgoingRequests, &profilesv1.OutgoingRequest{
-			ToUserId: r.ToUserID, FriendRequestId: r.ID,
+			ToUserId: r.ToUserID, ToLogin: outLogins[r.ToUserID], FriendRequestId: r.ID,
 		})
 	}
 	return resp, nil

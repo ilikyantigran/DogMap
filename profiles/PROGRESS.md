@@ -18,6 +18,7 @@ Terse running log. Update after every meaningful step.
 - Unit tests (`profiles_server_test.go`) with fake store/cache: identity, PII scoping, friend rules, block cascade, idempotent CreateProfile.
 
 - Unit tests green (19 server + 2 config).
+- release/profile-pending-requests: added `to_login` to `OutgoingRequest`; `ListFriends` populates it via `LoginFor` so the UI shows a nickname, not a UUID. Test asserts it.
 - Postgres integration test (skip-if-no-`PROFILES_TEST_DSN`): applies migration, exercises idempotent create, pet replacement, two-directional friend graph, block cascade, pending-request cancellation.
 - End-to-end transport test: real gRPC + grpc-gateway; POST /v1/profiles/get proves reduced-for-non-friend, unauthorized-without-token, full-PII-for-friend through the HTTP edge.
 - `go vet ./...` clean; binary builds; boot from values_local loads config + telemetry, fails cleanly at Postgres connect (correct wiring order).

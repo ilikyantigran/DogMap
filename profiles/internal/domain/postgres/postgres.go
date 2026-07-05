@@ -402,25 +402,34 @@ func (s *Store) IncomingPending(ctx context.Context, userID string) ([]FriendReq
 	return out, logins, rows.Err()
 }
 
-// OutgoingPending returns pending requests sent by userID.
-func (s *Store) OutgoingPending(ctx context.Context, userID string) ([]FriendRequest, error) {
+// OutgoingPending returns pending requests sent by userID, plus a map of
+// to_user_id -> login. The LEFT JOIN tolerates a target with no profiles row
+// (friend_requests.to_user_id has no FK), so a dangling request yields an empty
+// login instead of failing the whole call — mirrors IncomingPending.
+func (s *Store) OutgoingPending(ctx context.Context, userID string) ([]FriendRequest, map[string]string, error) {
 	rows, err := s.pool.Query(ctx, `
-		SELECT id, from_user_id, to_user_id
-		FROM profiles.friend_requests
-		WHERE from_user_id = $1 AND status = 'PENDING'
-		ORDER BY created_at`, userID)
+		SELECT fr.id, fr.from_user_id, fr.to_user_id, p.login
+		FROM profiles.friend_requests fr
+		LEFT JOIN profiles.profiles p ON p.user_id = fr.to_user_id
+		WHERE fr.from_user_id = $1 AND fr.status = 'PENDING'
+		ORDER BY fr.created_at`, userID)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer rows.Close()
 	var out []FriendRequest
+	logins := map[string]string{}
 	for rows.Next() {
 		var fr FriendRequest
-		if err := rows.Scan(&fr.ID, &fr.FromUserID, &fr.ToUserID); err != nil {
-			return nil, err
+		var login *string
+		if err := rows.Scan(&fr.ID, &fr.FromUserID, &fr.ToUserID, &login); err != nil {
+			return nil, nil, err
 		}
 		fr.Status = "PENDING"
+		if login != nil {
+			logins[fr.ToUserID] = *login
+		}
 		out = append(out, fr)
 	}
-	return out, rows.Err()
+	return out, logins, rows.Err()
 }
