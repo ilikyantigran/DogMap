@@ -31,7 +31,31 @@ unfinished item in **Next**.
 - Optional: swap in a component lib (PrimeVue/Vuetify) — deliberately omitted.
 - Optional: i18n scaffolding (nice-to-have per docs).
 
-## Completed since last update
+## Completed since last update — two-step registration (branch release/auth-registration-stage)
+
+- **ProfileSetup step** (post-login, one-time). After a confirmed login, if the
+  user's profile is empty (name+surname both blank) and they haven't skipped/
+  completed before, they're routed to `/profile/setup` to fill name/surname/
+  phone/pets; a clear **Skip** action lets them do it later on Profile. Either
+  action persists a per-user localStorage flag so later logins don't nag.
+  - `src/lib/profileSetup.ts` — `isSetupDone/markSetupDone` (localStorage key
+    `dogmap.setupDone.<userId>`) + `isProfileEmpty` (name+surname blank).
+  - `src/pages/ProfileSetupPage.vue` — reuses `profileStore.save` (EditUser) and
+    the `PetEditor` component; Save-and-continue vs Skip; loads self on mount if
+    not already loaded. Routes to `/map` after either action.
+  - `src/router/index.ts` — new guarded route `profile-setup` (`/profile/setup`)
+    + guard extension: on a guarded nav, when authed & !isSetupDone & profile is
+    POSITIVELY empty, divert to setup. Cheap isSetupDone short-circuit avoids any
+    fetch in the common case; excludes the setup route (no loop); never blocks
+    navigation on a profile-fetch error. Guard is now async.
+  - Register/verify flow left untouched (composes with the email-confirmation
+    branch).
+  - Tests: `tests/lib/profileSetup.spec.ts`, `tests/pages/ProfileSetupPage.spec.ts`
+    (Complete/Skip/load-on-mount), `tests/router/profileSetup.spec.ts` (redirect,
+    load-in-guard, done short-circuit, non-empty, no-loop, fetch-error, auth).
+  - `npm test` 47 passed (9 files); `npm run build` (vue-tsc + vite) green.
+
+## Completed earlier
 
 - Friends-on-map slice (branch `release/map-friends-widget`, 2026-07-05):
   - `types/api.ts`: `name` on MapObject; `FriendPresence` + `FriendsPresenceResponse`.
