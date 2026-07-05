@@ -112,4 +112,64 @@ describe('friendsStore', () => {
       user_id_target: 'u2',
     })
   })
+
+  it('refresh also fetches friend on-walk presence', async () => {
+    post.mockImplementation((url: string) => {
+      if (url === '/v1/friends/list') {
+        return Promise.resolve({
+          code: 0,
+          message: 'ok',
+          friends: [{ user_id: 'u1', login: 'Test1', on_walk: false, current_object_id: null }],
+          incoming_requests: [],
+          outgoing_requests: [],
+        })
+      }
+      if (url === '/v1/map/friends-presence') {
+        return Promise.resolve({
+          code: 0,
+          message: 'ok',
+          friends: [
+            {
+              user_id: 'u1',
+              object_id: 'obj-9',
+              object_name: 'Dog Park Barkley St',
+              latitude: 51.5,
+              longitude: -0.1,
+            },
+          ],
+        })
+      }
+      return Promise.resolve({ code: 0, message: 'ok' })
+    })
+    const friends = useFriendsStore()
+
+    await friends.refresh()
+
+    expect(post).toHaveBeenCalledWith('/v1/map/friends-presence', {})
+    expect(friends.presenceByUser['u1'].object_name).toBe('Dog Park Barkley St')
+  })
+
+  it('a presence-fetch failure never blanks the friends list', async () => {
+    post.mockImplementation((url: string) => {
+      if (url === '/v1/friends/list') {
+        return Promise.resolve({
+          code: 0,
+          message: 'ok',
+          friends: [{ user_id: 'u1', login: 'Test1', on_walk: false, current_object_id: null }],
+          incoming_requests: [],
+          outgoing_requests: [],
+        })
+      }
+      if (url === '/v1/map/friends-presence') {
+        return Promise.reject(new Error('map unavailable'))
+      }
+      return Promise.resolve({ code: 0, message: 'ok' })
+    })
+    const friends = useFriendsStore()
+
+    await friends.refresh()
+
+    expect(friends.friends).toHaveLength(1)
+    expect(friends.presenceByUser['u1']).toBeUndefined()
+  })
 })

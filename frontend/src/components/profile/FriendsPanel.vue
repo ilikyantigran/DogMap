@@ -10,7 +10,7 @@ import { useToastStore } from '@/stores/toastStore'
 // All data + mutations go through friendsStore; this component stays dumb.
 const friends = useFriendsStore()
 const toast = useToastStore()
-const { friends: friendList, incoming, outgoing, lookupResult } =
+const { friends: friendList, incoming, outgoing, lookupResult, presenceByUser } =
   storeToRefs(friends)
 
 const searchLogin = ref('')
@@ -93,13 +93,16 @@ async function run(fn: () => Promise<void>, ok?: string) {
         style="display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0"
       >
         <span>{{ f.login }}</span>
-        <span v-if="f.on_walk" title="On a walk" style="color: var(--dm-primary)">
-          🐾 on a walk
+        <span
+          v-if="presenceByUser[f.user_id]"
+          title="On a walk"
+          style="color: var(--dm-primary)"
+        >
+          🐾 on a walk at
           <RouterLink
-            v-if="f.current_object_id"
-            :to="{ name: 'map', query: { object: f.current_object_id } }"
+            :to="{ name: 'map', query: { object: presenceByUser[f.user_id].object_id } }"
           >
-            (where)
+            {{ presenceByUser[f.user_id].object_name }}
           </RouterLink>
         </span>
         <span v-else style="color: var(--dm-muted)">offline</span>
