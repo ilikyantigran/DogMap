@@ -38,7 +38,9 @@ Terse running log. Update after every meaningful step.
 
 ## Feature: email confirmation on registration (branch release/auth-email-confirm)
 _Added 2026-07-05._ Full vertical slice (Auth backend + frontend). Backend green
-(`go test ./...`), `make generate` reproducible.
+(`go test ./...`), frontend green (`npm test` 32, `npm run build`), `make generate`
+reproducible. **PR #8 open against main** (https://github.com/ilikyantigran/DogMap/pull/8),
+awaiting review/owner-merge. Do NOT self-merge.
 
 Backend done:
 - Migration `0002_email_verified.{up,down}.sql` — `auth.credentials.email_verified
