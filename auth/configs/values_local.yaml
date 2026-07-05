@@ -16,6 +16,17 @@ downstreams:
 
 auth:
   session_ttl_seconds: 86400  # 24h sliding session TTL
+  verify_ttl_seconds: 86400   # 24h email-verification token TTL
   argon2_memory_kib: 65536    # 64 MiB
   argon2_iterations: 3
   argon2_parallelism: 2
+
+# Empty smtp.host → no-op sender (logs the verify link) so `go run` works with no
+# mail server. Point host/port at a dev SMTP (e.g. Mailpit) to actually send.
+smtp:
+  host: ""
+  port: "1025"
+  from: "no-reply@dogmap.local"
+
+# Frontend origin used to build the verification link (${app_base_url}/verify?token=).
+app_base_url: "http://localhost:5173"

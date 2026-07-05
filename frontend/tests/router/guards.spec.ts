@@ -45,6 +45,13 @@ describe('router guards', () => {
     expect(router.currentRoute.value.name).toBe('login')
   })
 
+  it('keeps /verify public when logged out (reached from emailed link)', async () => {
+    const router = makeRouter()
+    await router.push('/verify?token=abc')
+    expect(router.currentRoute.value.name).toBe('verify')
+    expect(router.currentRoute.value.query.token).toBe('abc')
+  })
+
   it('bounces an authenticated user away from /login to the map', async () => {
     const auth = useAuthStore()
     auth.token = 'tok'

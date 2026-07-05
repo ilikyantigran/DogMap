@@ -39,6 +39,26 @@ service Auth {
       body: "*"
     };
   }
+
+  // VerifyEmail confirms a registration by its opaque verification token (from
+  // the emailed link). On success it marks the account verified and burns the
+  // token (single-use). Unknown/expired tokens return a non-zero code, no leak.
+  rpc VerifyEmail(VerifyEmailRequest) returns (VerifyEmailResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/verify"
+      body: "*"
+    };
+  }
+
+  // ResendVerification re-sends the confirmation email for an as-yet-unverified
+  // account. It always returns a generic ok regardless of whether the email
+  // exists or is already verified — no account-enumeration oracle.
+  rpc ResendVerification(ResendVerificationRequest) returns (ResendVerificationResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/resend-verification"
+      body: "*"
+    };
+  }
 }
 
 message RegisterRequest {
@@ -73,6 +93,25 @@ message LoginResponse {
 message LogoutRequest {}
 
 message LogoutResponse {
+  int32 code = 1;
+  string message = 2;
+}
+
+message VerifyEmailRequest {
+  // Opaque single-use verification token from the emailed link.
+  string token = 1 [(validate.rules).string.min_len = 1];
+}
+
+message VerifyEmailResponse {
+  int32 code = 1;
+  string message = 2;
+}
+
+message ResendVerificationRequest {
+  string email = 2 [(validate.rules).string.email = true];
+}
+
+message ResendVerificationResponse {
   int32 code = 1;
   string message = 2;
 }

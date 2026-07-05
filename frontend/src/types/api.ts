@@ -73,6 +73,22 @@ export interface LoginResponse extends ApiEnvelope {
   user_id: string
 }
 
+// Backend app-level error codes (Docs/02-Backend.md, auth_server.go). Only the
+// ones the frontend switches on are named here.
+export const AUTH_EMAIL_NOT_VERIFIED = 6
+
+export interface VerifyEmailRequest {
+  token: string
+}
+
+export type VerifyEmailResponse = ApiEnvelope
+
+export interface ResendVerificationRequest {
+  email: string
+}
+
+export type ResendVerificationResponse = ApiEnvelope
+
 // ---- Profiles ----
 
 export interface EditUserRequest {

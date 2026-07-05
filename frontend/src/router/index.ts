@@ -28,6 +28,13 @@ export const routes: RouteRecordRaw[] = [
     meta: { public: true },
   },
   {
+    path: '/verify',
+    name: 'verify',
+    component: () => import('@/pages/VerifyPage.vue'),
+    // Public: reached from an emailed link, typically while logged out.
+    meta: { public: true },
+  },
+  {
     path: '/profile',
     name: 'profile',
     component: () => import('@/pages/ProfilePage.vue'),

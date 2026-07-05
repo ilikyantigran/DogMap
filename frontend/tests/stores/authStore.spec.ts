@@ -40,22 +40,42 @@ describe('authStore', () => {
     expect(auth.isAuthenticated).toBe(true)
   })
 
-  it('register then auto-logins (Path 1 step 1-2)', async () => {
-    post
-      .mockResolvedValueOnce({ code: 0, message: 'ok', user_id: 'u2' })
-      .mockResolvedValueOnce({ code: 0, message: 'ok', token: 'tok2', user_id: 'u2' })
+  it('register does NOT auto-login; records the pending-verification email', async () => {
+    post.mockResolvedValueOnce({ code: 0, message: 'ok', user_id: 'u2' })
     const auth = useAuthStore()
 
     await auth.register({ login: 'Test1', email: 'a@b.com', password: 'pw' })
 
-    // Registered, then logged in automatically.
-    expect(post).toHaveBeenNthCalledWith(1, '/v1/auth/register', {
+    // Only the register call happens — no login (email confirmation required).
+    expect(post).toHaveBeenCalledTimes(1)
+    expect(post).toHaveBeenCalledWith('/v1/auth/register', {
       login: 'Test1',
       email: 'a@b.com',
       password: 'pw',
     })
-    expect(auth.token).toBe('tok2')
-    expect(auth.isAuthenticated).toBe(true)
+    expect(auth.token).toBeNull()
+    expect(auth.isAuthenticated).toBe(false)
+    expect(auth.pendingVerificationEmail).toBe('a@b.com')
+  })
+
+  it('verifyEmail posts the token to the verify endpoint', async () => {
+    post.mockResolvedValue({ code: 0, message: 'ok' })
+    const auth = useAuthStore()
+
+    await auth.verifyEmail('vtok-123')
+
+    expect(post).toHaveBeenCalledWith('/v1/auth/verify', { token: 'vtok-123' })
+  })
+
+  it('resendVerification posts the email to the resend endpoint', async () => {
+    post.mockResolvedValue({ code: 0, message: 'ok' })
+    const auth = useAuthStore()
+
+    await auth.resendVerification('a@b.com')
+
+    expect(post).toHaveBeenCalledWith('/v1/auth/resend-verification', {
+      email: 'a@b.com',
+    })
   })
 
   it('logout calls the backend and clears the token', async () => {
