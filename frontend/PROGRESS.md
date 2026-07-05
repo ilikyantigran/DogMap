@@ -23,6 +23,23 @@ unfinished item in **Next**.
 - Tests (first, where practical): apiClient, authStore, mapStore (incl. heartbeat),
   router guards, validation.
 
+## Feature: email confirmation on registration (branch release/auth-email-confirm)
+_2026-07-05._ Frontend slice; `npm test` (32) + `npm run build` green.
+- `authStore.register` NO LONGER auto-logins — it records
+  `pendingVerificationEmail`. New actions `verifyEmail(token)` (POST
+  /v1/auth/verify) and `resendVerification(email)` (POST
+  /v1/auth/resend-verification). `clearSession` also clears the pending email.
+- `RegisterForm.vue`: on success shows a "Check your email" panel (no navigation)
+  with a Resend button (`data-testid="check-email"`).
+- `LoginForm.vue`: catches `ApiError.code === AUTH_EMAIL_NOT_VERIFIED` (6) and
+  shows a "please confirm your email" banner (`data-testid="not-verified"`) with
+  a Resend button (shown only when the identifier is an email).
+- New public route `/verify` → `src/pages/VerifyPage.vue`: reads `?token=`, calls
+  `verifyEmail`, renders pending/success/error.
+- `src/types/api.ts`: `VerifyEmail*`/`ResendVerification*` types +
+  `AUTH_EMAIL_NOT_VERIFIED = 6` code constant.
+- Tests added: authStore (no auto-login + verify + resend), guards (/verify public).
+
 ## Next
 
 - (all core scope complete — see below)

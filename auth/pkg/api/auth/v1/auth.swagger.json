@@ -115,6 +115,72 @@
           "Auth"
         ]
       }
+    },
+    "/v1/auth/resend-verification": {
+      "post": {
+        "summary": "ResendVerification re-sends the confirmation email for an as-yet-unverified\naccount. It always returns a generic ok regardless of whether the email\nexists or is already verified — no account-enumeration oracle.",
+        "operationId": "Auth_ResendVerification",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ResendVerificationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1ResendVerificationRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/v1/auth/verify": {
+      "post": {
+        "summary": "VerifyEmail confirms a registration by its opaque verification token (from\nthe emailed link). On success it marks the account verified and burns the\ntoken (single-use). Unknown/expired tokens return a non-zero code, no leak.",
+        "operationId": "Auth_VerifyEmail",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1VerifyEmailResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1VerifyEmailRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Auth"
+        ]
+      }
     }
   },
   "definitions": {
@@ -224,6 +290,47 @@
         "userId": {
           "type": "string",
           "title": "string UUID"
+        }
+      }
+    },
+    "v1ResendVerificationRequest": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ResendVerificationResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "v1VerifyEmailRequest": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string",
+          "description": "Opaque single-use verification token from the emailed link."
+        }
+      }
+    },
+    "v1VerifyEmailResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
         }
       }
     }

@@ -28,6 +28,7 @@ services:
       # (CREATE ... IF NOT EXISTS) and self-contained (creates its own extension
       # + schema). Ordered names only for readability.
       - ./auth/migrations/0001_init.up.sql:/docker-entrypoint-initdb.d/10-auth.sql:ro
+      - ./auth/migrations/0002_email_verified.up.sql:/docker-entrypoint-initdb.d/11-auth-email-verified.sql:ro
       - ./profiles/internal/domain/postgres/migrations/0001_init.up.sql:/docker-entrypoint-initdb.d/20-profiles.sql:ro
       - ./map/migrations/0001_map_schema.up.sql:/docker-entrypoint-initdb.d/30-map.sql:ro
     healthcheck:
@@ -52,6 +53,15 @@ services:
       retries: 30
     restart: unless-stopped
 
+  # Mailpit: dev SMTP sink. Auth sends the verification email here (port 1025);
+  # read it in the web UI at http://localhost:8025. No real mail leaves the box.
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - "8025:8025"   # web UI
+      - "1025:1025"   # SMTP
+    restart: unless-stopped
+
   auth:
     build: ./auth
     depends_on:
@@ -61,6 +71,8 @@ services:
         condition: service_healthy
       profiles:
         condition: service_started   # CreateProfile handoff target (dial is lazy)
+      mailpit:
+        condition: service_started   # verification-email sink (send is best-effort)
     ports:
       - "8080:8080"   # gRPC
       - "8081:8081"   # HTTP gateway + /swagger/ + /metrics

@@ -40,6 +40,8 @@ func (s *Store) Close() { s.client.Close() }
 
 func sessionKey(token string) string { return "session:" + token }
 
+func verifyKey(token string) string { return "verify:" + token }
+
 // NewToken returns a fresh, high-entropy, URL-safe opaque token. Opaque means it
 // carries no claims — the mapping to a user lives only in Valkey.
 func NewToken() (string, error) {
@@ -103,4 +105,45 @@ func (s *Store) DeleteSession(ctx context.Context, token string) error {
 		return nil
 	}
 	return s.client.Do(ctx, s.client.B().Del().Key(sessionKey(token)).Build()).Error()
+}
+
+// --- Email-verification tokens (verify:{token} -> user_id) -------------------
+//
+// A separate keyspace from sessions: single-use, ~24h TTL, carries no claims.
+// Register mints one; VerifyEmail consumes it (GET then DEL). Once consumed or
+// expired the link is dead.
+
+// CreateVerifyToken stores verify:{token} -> user_id with the given TTL and
+// returns the opaque token to embed in the confirmation link.
+func (s *Store) CreateVerifyToken(ctx context.Context, userID string, ttl time.Duration) (string, error) {
+	token, err := NewToken()
+	if err != nil {
+		return "", err
+	}
+	cmd := s.client.B().Set().Key(verifyKey(token)).Value(userID).
+		ExSeconds(int64(ttl.Seconds())).Build()
+	if err := s.client.Do(ctx, cmd).Error(); err != nil {
+		return "", fmt.Errorf("valkey: create verify token: %w", err)
+	}
+	return token, nil
+}
+
+// ConsumeVerifyToken looks up the user id for a verification token and deletes
+// the key (single-use). It returns ("", false, nil) for an unknown/expired
+// token — callers treat that as an invalid link, not an error.
+func (s *Store) ConsumeVerifyToken(ctx context.Context, token string) (string, bool, error) {
+	if token == "" {
+		return "", false, nil
+	}
+	userID, err := s.client.Do(ctx, s.client.B().Get().Key(verifyKey(token)).Build()).ToString()
+	if err != nil {
+		if valkey.IsValkeyNil(err) {
+			return "", false, nil
+		}
+		return "", false, fmt.Errorf("valkey: consume verify token: %w", err)
+	}
+	// Burn the token so the link can't be replayed. Best effort: the account is
+	// still marked verified even if the delete races.
+	_ = s.client.Do(ctx, s.client.B().Del().Key(verifyKey(token)).Build()).Error()
+	return userID, true, nil
 }

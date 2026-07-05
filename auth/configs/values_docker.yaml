@@ -16,6 +16,16 @@ downstreams:
 
 auth:
   session_ttl_seconds: 86400
+  verify_ttl_seconds: 86400
   argon2_memory_kib: 65536
   argon2_iterations: 3
   argon2_parallelism: 2
+
+# Mailpit dev SMTP (see docker-compose.yml): plaintext, no auth, port 1025.
+smtp:
+  host: mailpit
+  port: "1025"
+  from: "no-reply@dogmap.local"
+
+# Frontend origin (Vite dev server) for the verification link.
+app_base_url: "http://localhost:5173"

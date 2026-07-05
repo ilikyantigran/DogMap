@@ -1,16 +1,17 @@
 package app
 
 import (
-	"google.golang.org/protobuf/encoding/protojson"
 	"context"
 	"errors"
 	"fmt"
+	"google.golang.org/protobuf/encoding/protojson"
 	"log/slog"
 	"net"
 	"net/http"
 	"time"
 
 	"auth-service/internal/clients"
+	"auth-service/internal/domain/email"
 	"auth-service/internal/domain/password"
 	"auth-service/internal/domain/postgres"
 	"auth-service/internal/domain/valkey"
@@ -82,7 +83,20 @@ func (a *App) Run(ctx context.Context) error {
 		Parallelism: a.config.Auth.Argon2Parallelism,
 	})
 	ttl := time.Duration(a.config.Auth.SessionTTLSeconds) * time.Second
-	srv := NewServer(pg, vk, hasher, cl.Profiles, ttl)
+	verifyTTL := time.Duration(a.config.Auth.VerifyTTLSeconds) * time.Second
+
+	// Mailer: SMTP when a host is configured (Docker → Mailpit), else a no-op
+	// sender that logs the link so local `go run` works without a mail server.
+	var mailer email.Sender
+	if a.config.SMTP.Host != "" {
+		mailer = email.NewSMTPSender(a.config.SMTP.Host, a.config.SMTP.Port, a.config.SMTP.From)
+		slog.Info("email: SMTP sender", "host", a.config.SMTP.Host, "port", a.config.SMTP.Port)
+	} else {
+		mailer = email.NoopSender{}
+		slog.Warn("email: no SMTP host configured, using no-op sender (links are logged only)")
+	}
+
+	srv := NewServer(pg, vk, hasher, cl.Profiles, vk, mailer, a.config.AppBaseURL, ttl, verifyTTL)
 
 	// 5. gRPC server.
 	grpcAddr := fmt.Sprintf(":%s", a.config.Service.GrpcPort)

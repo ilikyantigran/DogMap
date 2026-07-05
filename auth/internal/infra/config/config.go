@@ -36,11 +36,25 @@ type Config struct {
 	// Auth-specific tuning knobs.
 	Auth struct {
 		SessionTTLSeconds int `yaml:"session_ttl_seconds"` // sliding session TTL (e.g. 86400 = 24h)
+		VerifyTTLSeconds  int `yaml:"verify_ttl_seconds"`  // email-verification token TTL (e.g. 86400 = 24h)
 		// Argon2id parameters. Defaults applied in the hasher if zero.
 		Argon2Memory      uint32 `yaml:"argon2_memory_kib"` // KiB
 		Argon2Iterations  uint32 `yaml:"argon2_iterations"`
 		Argon2Parallelism uint8  `yaml:"argon2_parallelism"`
 	} `yaml:"auth"`
+
+	// SMTP is the outbound mail server for the verification email. When Host is
+	// empty the service uses a no-op sender (logs the link) so local `go run`
+	// works without a mail server. Docker points this at Mailpit.
+	SMTP struct {
+		Host string `yaml:"host"`
+		Port string `yaml:"port"`
+		From string `yaml:"from"`
+	} `yaml:"smtp"`
+
+	// AppBaseURL is the frontend origin used to build the verification link:
+	// ${app_base_url}/verify?token=...
+	AppBaseURL string `yaml:"app_base_url"`
 }
 
 // InitConfig opens the YAML file at path and decodes it into a Config.
