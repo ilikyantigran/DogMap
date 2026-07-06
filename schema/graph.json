@@ -1,0 +1,36 @@
+{
+  "name": "dogmap",
+  "title": "DogMap — Service Architecture",
+  "width": 1320,
+  "height": 900,
+  "groups": {
+    "frontend":  ["#dbeafe", "#3b82f6", "#1e3a8a"],
+    "auth":      ["#fee2e2", "#ef4444", "#7f1d1d"],
+    "profiles":  ["#dcfce7", "#22c55e", "#14532d"],
+    "map":       ["#fef9c3", "#eab308", "#713f12"],
+    "datastore": ["#e0e7ff", "#6366f1", "#312e81"],
+    "external":  ["#ffedd5", "#f97316", "#7c2d12"]
+  },
+  "nodes": [
+    {"id": "frontend", "label": "Frontend (Vue 3)", "group": "frontend",  "shape": "box", "tier": 0, "sublabels": ["pages", "components", "stores (Pinia)", "api client", "Leaflet / OSM"]},
+    {"id": "auth",     "label": "auth",             "group": "auth",      "shape": "box", "tier": 1, "sublabels": ["register / login", "sessions · Argon2id", "gRPC + HTTP/Swagger"]},
+    {"id": "profiles", "label": "profiles",         "group": "profiles",  "shape": "box", "tier": 1, "sublabels": ["profiles / pets", "friends / blocks", "gRPC + HTTP/Swagger"]},
+    {"id": "map",      "label": "map",              "group": "map",       "shape": "box", "tier": 1, "sublabels": ["5km presence", "privacy filter", "gRPC + HTTP/Swagger"]},
+    {"id": "osm",      "label": "OpenStreetMap",    "group": "external",  "shape": "ext", "tier": 1, "sublabels": ["map tiles"]},
+    {"id": "pg",       "label": "PostgreSQL + PostGIS", "group": "datastore", "shape": "db", "tier": 2, "sublabels": ["auth · profiles · map schemas"]},
+    {"id": "valkey",   "label": "Valkey",           "group": "datastore", "shape": "db",  "tier": 2, "sublabels": ["sessions · caches · presence"]}
+  ],
+  "edges": [
+    {"source": "frontend", "target": "auth",     "style": "solid",  "arrow": "both"},
+    {"source": "frontend", "target": "profiles", "style": "solid",  "arrow": "both"},
+    {"source": "frontend", "target": "map",      "style": "solid",  "arrow": "both"},
+    {"source": "frontend", "target": "osm",      "style": "dashed", "arrow": "one"},
+    {"source": "auth",     "target": "profiles", "style": "solid",  "arrow": "one"},
+    {"source": "auth",     "target": "pg",       "style": "solid",  "arrow": "both"},
+    {"source": "auth",     "target": "valkey",   "style": "solid",  "arrow": "both"},
+    {"source": "profiles", "target": "pg",       "style": "solid",  "arrow": "both"},
+    {"source": "profiles", "target": "valkey",   "style": "solid",  "arrow": "both"},
+    {"source": "map",      "target": "pg",       "style": "solid",  "arrow": "both"},
+    {"source": "map",      "target": "valkey",   "style": "solid",  "arrow": "both"}
+  ]
+}
