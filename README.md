@@ -4,6 +4,12 @@ Coordinate dog walks: see who's walking their dog near you right now, at dog-rel
 map objects (parks, dog-parks, dog-friendly beaches). Point-of-interest presence, not
 live GPS. See `Docs/` for the full design (`01-Idea.md`, `02-Backend.md`, `03-Frontend.md`).
 
+## Architecture
+
+![DogMap architecture — the Vue frontend talks to the auth, profiles and map services (auth→profiles over gRPC), all backed by PostgreSQL+PostGIS and Valkey, with tiles from OpenStreetMap](schema/graph.gif)
+
+*Animated block-scheme — the moving packets show how the services communicate. An interactive version (pan, zoom, hover to trace calls, click to isolate) is in [`schema/graph.html`](schema/graph.html).*
+
 ## Layout
 
 | Path | What |
