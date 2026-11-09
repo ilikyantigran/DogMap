@@ -90,7 +90,16 @@
       "Bash(gh api repos/ilikyantigran/DogMap/pulls/2/reviews -f event=COMMENT -f 'body= *)",
       "Bash(python3 - /private/tmp/claude-502/-Users-a1234-MyProjectsCrossPlatform-DogMap/61e75eaa-ceb7-4dbf-a10b-55972c7ba2a8/scratchpad/review.json /private/tmp/claude-502/-Users-a1234-MyProjectsCrossPlatform-DogMap/61e75eaa-ceb7-4dbf-a10b-55972c7ba2a8/scratchpad/body.txt /private/tmp/claude-502/-Users-a1234-MyProjectsCrossPlatform-DogMap/61e75eaa-ceb7-4dbf-a10b-55972c7ba2a8/scratchpad/review.final.json)",
       "Bash(gh api *)",
-      "Bash(git pull *)"
+      "Bash(git pull *)",
+      "Bash(python3 -c \"import reportlab; print\\('reportlab', reportlab.Version\\)\")",
+      "Bash(pip install *)",
+      "Bash(python3 -c \"import reportlab; print\\('ok', reportlab.Version\\)\")",
+      "Bash(python3 -m pip install reportlab -q)",
+      "Bash(python3 \"/private/tmp/claude-502/-Users-a1234-MyProjectsCrossPlatform-DogMap/8334dd61-5598-463f-842b-169aeb2cfa57/scratchpad/make_resume.py\")",
+      "Bash(python3 -c \"import docx; print\\('ok', docx.__version__\\)\")",
+      "Bash(python3 -m pip install python-docx -q)",
+      "Bash(python3 -c \"import docx; print\\('ok'\\)\")",
+      "Bash(python3 \"/private/tmp/claude-502/-Users-a1234-MyProjectsCrossPlatform-DogMap/8334dd61-5598-463f-842b-169aeb2cfa57/scratchpad/make_resume_docx.py\")"
     ]
   }
 }
